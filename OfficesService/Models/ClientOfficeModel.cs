@@ -7,10 +7,11 @@ namespace OfficesService.Models
         public Guid? Id { get; set; }
 
         [Required]
-        // todo: validate through regex or smth
+        // todo:  implement validator
         public string Adress { get; set; }
 
         [Required]
+        [DataType(DataType.PhoneNumber)]
         public string RegistryPhoneNumber { get; set; }
 
         [Required]

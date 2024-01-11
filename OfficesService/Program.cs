@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OfficesService.Data;
-using OfficesService.Services;
 using OfficesService.Models.MapperProfiles;
+using OfficesService.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,11 @@ var identityString = Environment.GetEnvironmentVariable("IdentityPath") ?? build
 var dbConnection = Environment.GetEnvironmentVariable("DbConnection") ?? builder.Configuration.GetConnectionString("DbConnection");
 
 // Add services to the container.
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateLogger();
 
 builder.Services.AddCors(options =>
 {
@@ -30,6 +36,7 @@ builder.Services.AddDbContext<OfficesDbContext>(
 
 builder.Services.AddAutoMapper(typeof(OfficesControllerProfile));
 builder.Services.AddScoped<DbService>();
+//builder.Services.AddScoped<IValidator<ClientOfficeModel>, ClientOfficeModelValidator>();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -101,9 +108,20 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+//app.UseStatusCodePages(async context =>
+//{
+//    var response = context.HttpContext.Response;
+
+//    if (response.StatusCode == (int)HttpStatusCode.Unauthorized ||
+//            response.StatusCode == (int)HttpStatusCode.Forbidden)
+//        response.Redirect("http://localhost:5000/connect/token");
+//});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+Log.CloseAndFlush();

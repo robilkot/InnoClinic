@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using OfficesService.Models;
 using OfficesService.Services;
 using AutoMapper;
+using Serilog;
 
 namespace OfficesService.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "receptionist,admin")]
+    //[Authorize(Roles = "receptionist,admin")]
     [Route("[controller]")]
     public class OfficesController : ControllerBase
     {
@@ -20,7 +21,6 @@ namespace OfficesService.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ClientOfficeModel>>> GetOffices()
         {
             var dbOffices = await _dbService.GetOffices();
@@ -40,12 +40,26 @@ namespace OfficesService.Controllers
             return clientOffice;
         }
 
+        [HttpDelete("{id:Guid}")]
+        public async Task<ActionResult<ClientOfficeModel>> DeleteOffice(Guid id)
+        {
+            var dbOffice = await _dbService.DeleteOffice(id);
+
+            Log.Information("Office deleted => {@dbOffice}", dbOffice);
+
+            var clientOffice = _mapper.Map<ClientOfficeModel>(dbOffice);
+
+            return clientOffice;
+        }
+
         [HttpPost]
         public async Task<ActionResult<ClientOfficeModel>> CreateOffice([FromBody] ClientOfficeModel office)
         {
             var dbOffice = _mapper.Map<DbOfficeModel>(office);
 
             var addedOffice = await _dbService.AddOffice(dbOffice);
+
+            Log.Information("Office created => {@addedOffice}", addedOffice);
 
             var clientOffice = _mapper.Map<ClientOfficeModel>(addedOffice);
 
@@ -58,6 +72,8 @@ namespace OfficesService.Controllers
             var dbOffice = _mapper.Map<DbOfficeModel>(office);
 
             var updatedOffice = await _dbService.UpdateOffice(dbOffice);
+
+            Log.Information("Office updated => {@addedOffice}", updatedOffice);
 
             var clientOffice = _mapper.Map<ClientOfficeModel>(updatedOffice);
 

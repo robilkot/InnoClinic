@@ -15,7 +15,8 @@ namespace OfficesService.Services
 
         public async Task<IEnumerable<DbOfficeModel>> GetOffices()
         {
-            IEnumerable<DbOfficeModel> offices = await _dbContext.Offices.AsNoTracking().ToListAsync();
+            // todo: problem with image loading when using asnotracking()
+            IEnumerable<DbOfficeModel> offices = await _dbContext.Offices.ToListAsync();
 
             return offices;
         }
@@ -27,6 +28,22 @@ namespace OfficesService.Services
             {
                 throw new OfficesException("Office not found", 404);
             }
+
+            return office;
+        }
+
+        public async Task<DbOfficeModel> DeleteOffice(Guid id)
+        {
+            var office = await _dbContext.Offices.FirstOrDefaultAsync(o => o.Id == id);
+
+            if (office == null)
+            {
+                throw new OfficesException("Office not found", 404);
+            }
+
+            _dbContext.Offices.Remove(office);
+
+            await _dbContext.SaveChangesAsync();
 
             return office;
         }
