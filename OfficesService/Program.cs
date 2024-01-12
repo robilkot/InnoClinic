@@ -58,7 +58,8 @@ builder.Services.AddSwaggerGen(options =>
                 TokenUrl = new Uri($"{identityString}/connect/token"),
                 Scopes = new Dictionary<string, string> { { "offices.edit", "Edit offices" } }
             }
-        }
+        },
+        In = ParameterLocation.Cookie
     });
 
     //options.OperationFilter<AuthorizeCheckOperationFilter>();
@@ -85,7 +86,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("offices.edit", policy =>
+        policy.RequireClaim("scope", "offices.edit"));
+});
 
 builder.Services.AddControllers();
 

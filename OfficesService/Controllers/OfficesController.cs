@@ -4,12 +4,13 @@ using OfficesService.Models;
 using OfficesService.Services;
 using AutoMapper;
 using Serilog;
+using Microsoft.Identity.Web.Resource;
 
 namespace OfficesService.Controllers
 {
     [ApiController]
-    //[Authorize(Roles = "receptionist,admin")]
     [Route("[controller]")]
+    [Authorize("offices.edit")]
     public class OfficesController : ControllerBase
     {
         private readonly DbService _dbService;
@@ -21,8 +22,14 @@ namespace OfficesService.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ClientOfficeModel>>> GetOffices()
         {
+            //foreach(var c in User.Claims)
+            //{
+            //    Console.WriteLine(c.Value.ToString());
+            //}
+            //return Ok();
             var dbOffices = await _dbService.GetOffices();
 
             var clientOffices = _mapper.Map<IEnumerable<ClientOfficeModel>>(dbOffices);
