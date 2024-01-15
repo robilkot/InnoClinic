@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using OfficesService.Data;
-using OfficesService.Models.MapperProfiles;
-using OfficesService.Services;
+using ProfilesService.Data;
+using ProfilesService.Models.MapperProfiles;
 using Serilog;
+using ProfilesService.Services;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,21 +30,23 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<OfficesDbContext>(
-    b => b.UseSqlServer(connectionString)
-    .UseLazyLoadingProxies());
+builder.Services.AddDbContext<ProfilesDbContext>(
+    b => b.UseSqlServer(connectionString));
 
 
-builder.Services.AddAutoMapper(typeof(OfficesControllerProfile));
+builder.Services.AddAutoMapper(typeof(DoctorsControllerProfile));
+//builder.Services.AddAutoMapper(typeof(PatientsControllerProfile));
 builder.Services.AddScoped<DbService>();
 
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Innoclinic offices service API",
-        Description = "An ASP.NET Core Web API for managing offices",
+        Title = "Innoclinic profiles service API",
+        Description = "An ASP.NET Core Web API for managing profiles",
     });
 
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -56,15 +58,10 @@ builder.Services.AddSwaggerGen(options =>
             {
                 AuthorizationUrl = new Uri($"{authorityString}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityString}/connect/token"),
-                Scopes = new Dictionary<string, string> { { "offices.edit", "Edit offices" } }
+                Scopes = new Dictionary<string, string> { { "doctors.edit", "Edit doctors" } }
             }
         },
     });
-
-    //options.OperationFilter<AuthorizeCheckOperationFilter>();
-
-    //var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    //options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 builder.Services.AddAuthentication(options =>
@@ -88,7 +85,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false,
         ValidateIssuer = true,
         ValidIssuer = authorityString,
-      
+
         ValidateIssuerSigningKey = false,
         ValidateLifetime = true,
 
@@ -98,8 +95,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("offices.edit", policy =>
-        policy.RequireClaim("scope", "offices.edit"));
+    options.AddPolicy("doctors.edit", policy =>
+        policy.RequireClaim("scope", "doctors.edit"));
 });
 
 builder.Services.AddControllers();
@@ -107,30 +104,13 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
-app.UseCors("AllowCors");
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(setup =>
-    {
-        setup.SwaggerEndpoint($"/swagger/v1/swagger.json", "Version 1.0");
-        setup.OAuthClientId("officesService");
-        setup.OAuthAppName("Offices Service");
-        //setup.OAuthScopeSeparator(" ");
-        setup.OAuthUsePkce();
-    });
+    app.UseSwaggerUI();
 }
 
-//app.UseStatusCodePages(async context =>
-//{
-//    var response = context.HttpContext.Response;
-
-//    if (response.StatusCode == (int)HttpStatusCode.Unauthorized ||
-//            response.StatusCode == (int)HttpStatusCode.Forbidden)
-//        response.Redirect("http://localhost:5000/connect/token");
-//});
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
