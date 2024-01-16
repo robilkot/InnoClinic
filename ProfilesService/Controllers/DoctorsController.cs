@@ -23,19 +23,20 @@ namespace ProfilesService.Controllers
 
         // Enumerable params to sort doctors by different fields
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClientDoctorModel>>> GetDoctors(IEnumerable<Guid>? specializations, IEnumerable<Guid>? offices, string? doctorName, IEnumerable<DoctorStatusEnum>? status)
+        public async Task<ActionResult<IEnumerable<ClientDoctorModel>>> GetDoctors([FromQuery] int pageNumber, [FromQuery] int pageSize,
+            [FromQuery] IEnumerable<Guid>? specializations, [FromQuery] IEnumerable<Guid>? offices,[FromQuery] string? doctorName, IEnumerable<DoctorStatusEnum>? status)
         {
             IEnumerable<ClientDoctorModel> clientDoctors;
 
-            if(User.IsInRole("receptionist") || User.IsInRole("admin"))
+            if(User.IsInRole("receptionist"))
             {
-                var dbDoctors = await _dbService.GetDoctors(specializations, offices, status, doctorName);
+                var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, status, doctorName);
                 
                 clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
             }
             else
             {
-                var dbDoctors = await _dbService.GetDoctors(specializations, offices, new List<DoctorStatusEnum>() { DoctorStatusEnum.AtWork }, doctorName);
+                var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, new List<DoctorStatusEnum>() { DoctorStatusEnum.AtWork }, doctorName);
 
                 clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
 
@@ -58,7 +59,7 @@ namespace ProfilesService.Controllers
 
             var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
 
-            if (!User.IsInRole("receptionist") && !User.IsInRole("admin") && !CurrentUserIsDoctor(dbDoctor.AccountId))
+            if (!User.IsInRole("receptionist") && !CurrentUserIsDoctor(dbDoctor.AccountId))
             {
                 clientDoctor.DateOfBirth = null;
                 clientDoctor.Email = null;
@@ -102,7 +103,7 @@ namespace ProfilesService.Controllers
         {
             var dbDoctor = _mapper.Map<DbDoctorModel>(doctor);
 
-            if (User.IsInRole("receptionist") || User.IsInRole("admin") || CurrentUserIsDoctor(dbDoctor.AccountId))
+            if (User.IsInRole("receptionist") || CurrentUserIsDoctor(dbDoctor.AccountId))
             {
                 var updatedDoctor = await _dbService.UpdateDoctor(dbDoctor);
 

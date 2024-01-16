@@ -98,5 +98,80 @@ namespace ProfilesService.Services
 
             return toEdit;
         }
+
+
+        public async Task<IEnumerable<DbPatientModel>> GetPatients(int pageNumber, int pageSize, string? name)
+        {
+            IQueryable<DbPatientModel> query = _dbContext.Patients;
+
+            if (name != null)
+            {
+                query = query.Where(d => d.FirstName + ' ' + d.MiddleName + ' ' + d.LastName == name); // todo: this is bs check
+            }
+
+            query = query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            IEnumerable<DbPatientModel> patients = await query.AsNoTracking().ToListAsync();
+
+            return patients;
+        }
+
+        public async Task<DbPatientModel> GetPatient(Guid id)
+        {
+            // todo: is this obj being tracked?
+            var doctor = await _dbContext.Patients.FirstOrDefaultAsync(d => d.Id == id);
+
+            if (doctor == null)
+            {
+                throw new ProfilesException("Doctor not found", 404);
+            }
+
+            return doctor;
+        }
+
+        public async Task<DbPatientModel> AddPatient(DbPatientModel patient)
+        {
+            patient.Id = Guid.NewGuid();
+
+            _dbContext.Patients.Add(patient);
+
+            await _dbContext.SaveChangesAsync();
+
+            return patient;
+        }
+
+        public async Task<DbPatientModel> DeletePatient(Guid id)
+        {
+            var patient = await _dbContext.Patients.FirstOrDefaultAsync(o => o.Id == id);
+
+            if (patient == null)
+            {
+                throw new ProfilesException("Patient not found", 404);
+            }
+
+            _dbContext.Patients.Remove(patient);
+
+            await _dbContext.SaveChangesAsync();
+
+            return patient;
+        }
+
+        public async Task<DbPatientModel> UpdatePatient(DbPatientModel patient)
+        {
+            var toEdit = await _dbContext.Patients.FirstOrDefaultAsync(o => o.Id == patient.Id);
+
+            if (toEdit == null)
+            {
+                throw new ProfilesException("Patient not found", 404);
+            }
+
+            _dbContext.Entry(toEdit).CurrentValues.SetValues(patient);
+
+            await _dbContext.SaveChangesAsync();
+
+            return toEdit;
+        }
     }
 }

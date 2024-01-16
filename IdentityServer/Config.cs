@@ -26,7 +26,6 @@ namespace IdentityServer
         public static IEnumerable<IdentityRole> IdentityRoles =>
             new IdentityRole[]
             {
-                new IdentityRole("admin"),
                 new IdentityRole("receptionist"),
                 new IdentityRole("patient"),
                 new IdentityRole("doctor"),
