@@ -25,7 +25,6 @@ builder.Services.AddCors(options =>
     {
         builder.AllowAnyMethod()
                     .AllowCredentials()
-                    .SetIsOriginAllowed((host) => true)
                     .AllowAnyHeader();
     });
 });
@@ -60,11 +59,6 @@ builder.Services.AddSwaggerGen(options =>
             }
         },
     });
-
-    //options.OperationFilter<AuthorizeCheckOperationFilter>();
-
-    //var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    //options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 builder.Services.AddAuthentication(options =>
@@ -106,8 +100,6 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
 app.UseCors("AllowCors");
 
 if (app.Environment.IsDevelopment())
@@ -122,15 +114,6 @@ if (app.Environment.IsDevelopment())
         setup.OAuthUsePkce();
     });
 }
-
-//app.UseStatusCodePages(async context =>
-//{
-//    var response = context.HttpContext.Response;
-
-//    if (response.StatusCode == (int)HttpStatusCode.Unauthorized ||
-//            response.StatusCode == (int)HttpStatusCode.Forbidden)
-//        response.Redirect("http://localhost:5000/connect/token");
-//});
 
 app.UseAuthentication();
 app.UseAuthorization();

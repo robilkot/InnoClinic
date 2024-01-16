@@ -21,6 +21,9 @@ namespace IdentityServer
             new ApiScope[]
             {
                 new ApiScope("offices.edit"),
+                new ApiScope("patients.edit"),
+                new ApiScope("doctors.edit"),
+                new ApiScope("receptionists.edit"),
             };
 
         public static IEnumerable<IdentityRole> IdentityRoles =>
@@ -42,15 +45,39 @@ namespace IdentityServer
 
                     AllowedGrantTypes = GrantTypes.Code,
 
-                    RedirectUris = { "https://localhost:44300/signin-oidc",
-                                     "http://localhost:5001/offices",
-                    "http://127.0.0.1:5001/swagger/oauth2-redirect.html" },
+                    RedirectUris = {
+                        "https://localhost:44300/signin-oidc",
+                        "http://localhost:5001/offices",
+                        "http://127.0.0.1:5001/swagger/oauth2-redirect.html"
+                    },
 
                     FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
                     PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
 
                     AllowOfflineAccess = true,
                     AllowedScopes = { "offices.edit" }
+                },
+
+                new Client
+                {
+                    ClientId = "profilesService",
+                    ClientSecrets = { new Secret("profilesService".Sha256()) },
+
+                    AllowedGrantTypes = { GrantType.AuthorizationCode },
+
+                    RedirectUris = {
+                        "https://localhost:44300/signin-oidc",
+                        "http://localhost:5002/patients",
+                        "http://localhost:5002/doctors",
+                        "http://localhost:5002/receptionists",
+                        "http://127.0.0.1:5002/swagger/oauth2-redirect.html"
+                    },
+
+                    FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
+                    PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
+
+                    AllowOfflineAccess = true,
+                    AllowedScopes = { "patients.edit", "receptionists.edit", "doctors.edit" }
                 },
             };
     }

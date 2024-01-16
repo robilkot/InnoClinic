@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
-using IdentityServer4;
+using IdentityServer.Data;
+using IdentityServer.Models;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -10,15 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using IdentityServer.Data;
-using IdentityServer.Models;
-using IdentityServer4.Services;
-using Microsoft.EntityFrameworkCore.Migrations.Internal;
-using System.Reflection;
-using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.EntityFramework.Mappers;
 using System.Linq;
-using System;
+using System.Reflection;
 
 namespace IdentityServer
 {
@@ -52,7 +48,7 @@ namespace IdentityServer
                     .AllowCredentials()
                     .SetIsOriginAllowed((host) => true)
                     .AllowAnyHeader();
-            });
+                });
             });
 
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
@@ -87,16 +83,17 @@ namespace IdentityServer
             builder.AddDeveloperSigningCredential();
 
             services.AddAuthentication();
-                //.AddGoogle(options =>
-                //{
-                //    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+            //.AddGoogle(options =>
+            //{
+            //    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
 
-                //    // register your IdentityServer with Google at https://console.developers.google.com
-                //    // enable the Google+ API
-                //    // set the redirect URI to https://localhost:5001/signin-google
-                //    options.ClientId = "copy client ID from Google here";
-                //    options.ClientSecret = "copy client secret from Google here";
-                //});
+            //    // register your IdentityServer with Google at https://console.developers.google.com
+            //    // enable the Google+ API
+            //    // set the redirect URI to https://localhost:5001/signin-google
+            //    options.ClientId = "copy client ID from Google here";
+            //    options.ClientSecret = "copy client secret from Google here";
+            //});
+
         }
 
         private void InitializeDatabase(IApplicationBuilder app)
@@ -108,32 +105,32 @@ namespace IdentityServer
                 var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
                 context.Database.Migrate();
 
-                if (!context.Clients.Any())
+                foreach (var client in Config.Clients)
                 {
-                    foreach (var client in Config.Clients)
+                    if (context.Clients.FirstOrDefault(s => s.ClientId == client.ClientId) == null)
                     {
                         context.Clients.Add(client.ToEntity());
                     }
-                    context.SaveChanges();
                 }
+                context.SaveChanges();
 
-                if (!context.IdentityResources.Any())
+                foreach (var resource in Config.IdentityResources)
                 {
-                    foreach (var resource in Config.IdentityResources)
+                    if (context.IdentityResources.FirstOrDefault(s => s.Name == resource.Name) == null)
                     {
                         context.IdentityResources.Add(resource.ToEntity());
                     }
-                    context.SaveChanges();
                 }
+                context.SaveChanges();
 
-                if (!context.ApiScopes.Any())
+                foreach (var resource in Config.ApiScopes)
                 {
-                    foreach (var resource in Config.ApiScopes)
+                    if (context.ApiScopes.FirstOrDefault(s => s.Name == resource.Name) == null)
                     {
                         context.ApiScopes.Add(resource.ToEntity());
                     }
-                    context.SaveChanges();
                 }
+                context.SaveChanges();
             }
         }
 

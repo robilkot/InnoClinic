@@ -25,7 +25,6 @@ builder.Services.AddCors(options =>
     {
         builder.AllowAnyMethod()
                     .AllowCredentials()
-                    .SetIsOriginAllowed((host) => true)
                     .AllowAnyHeader();
     });
 });
@@ -40,8 +39,6 @@ builder.Services.AddAutoMapper(typeof(ReceptionistsControllerProfile));
 
 builder.Services.AddScoped<DbService>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -115,14 +112,20 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseCors("AllowCors");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(setup =>
+    {
+        setup.SwaggerEndpoint($"/swagger/v1/swagger.json", "Version 1.0");
+        setup.OAuthClientId("profilesService");
+        setup.OAuthAppName("Profiles Service");
+        //setup.OAuthScopeSeparator(" ");
+        setup.OAuthUsePkce();
+    });
 }
-
-//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
