@@ -1,9 +1,11 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfilesService.Exceptions;
 using ProfilesService.Models;
 using ProfilesService.Services;
 using Serilog;
+using System.Numerics;
 
 namespace ProfilesService.Controllers
 {
@@ -21,66 +23,104 @@ namespace ProfilesService.Controllers
 
         // Enumerable params to sort doctors by different fields
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClientDoctorModel>>> GetDoctors(IEnumerable<Guid>? specializations, IEnumerable<Guid>? offices, string? doctorName)
+        public async Task<ActionResult<IEnumerable<ClientDoctorModel>>> GetDoctors(IEnumerable<Guid>? specializations, IEnumerable<Guid>? offices, string? doctorName, IEnumerable<DoctorStatusEnum>? status)
         {
-            //var dbOffices = await _dbService.GetOffices();
+            IEnumerable<ClientDoctorModel> clientDoctors;
 
-            //var clientOffices = _mapper.Map<IEnumerable<ClientOfficeModel>>(dbOffices);
+            if(User.IsInRole("receptionist") || User.IsInRole("admin"))
+            {
+                var dbDoctors = await _dbService.GetDoctors(specializations, offices, status, doctorName);
+                
+                clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
+            }
+            else
+            {
+                var dbDoctors = await _dbService.GetDoctors(specializations, offices, new List<DoctorStatusEnum>() { DoctorStatusEnum.AtWork }, doctorName);
 
-            //return new(clientOffices);
+                clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
+
+                foreach (var doctor in clientDoctors)
+                {
+                    doctor.DateOfBirth = null;
+                    doctor.Email = null;
+                    doctor.AccountId = null;
+                    doctor.Status = null;
+                }
+            }
+
+            return new(clientDoctors);
         }
 
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult<ClientDoctorModel>> GetDoctor(Guid id)
         {
-            //var dbOffice = await _dbService.GetOffice(id);
+            var dbDoctor = await _dbService.GetDoctor(id);
 
-            //var clientOffice = _mapper.Map<ClientOfficeModel>(dbOffice);
+            var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
 
-            //return clientOffice;
+            if (!User.IsInRole("receptionist") && !User.IsInRole("admin") && !CurrentUserIsDoctor(dbDoctor.AccountId))
+            {
+                clientDoctor.DateOfBirth = null;
+                clientDoctor.Email = null;
+                clientDoctor.AccountId = null;
+                clientDoctor.Status = null;
+            }
+
+            return clientDoctor;
         }
 
         [HttpDelete("{id:Guid}")]
         [Authorize("doctors.edit")]
         public async Task<ActionResult<ClientDoctorModel>> DeleteDoctor(Guid id)
         {
-            //var dbOffice = await _dbService.DeleteOffice(id);
+            var dbDoctor = await _dbService.DeleteDoctor(id);
 
-            //Log.Information("Office deleted => {@dbOffice}", dbOffice);
+            Log.Information("Doctor deleted => {@dbDoctor}", dbDoctor);
 
-            //var clientOffice = _mapper.Map<ClientOfficeModel>(dbOffice);
+            var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
 
-            //return clientOffice;
+            return clientDoctor;
         }
 
         [HttpPost]
         [Authorize("doctors.edit")]
         public async Task<ActionResult<ClientDoctorModel>> CreateDoctor([FromBody] ClientDoctorModel doctor)
         {
-            //var dbOffice = _mapper.Map<DbOfficeModel>(office);
+            var dbDoctor = _mapper.Map<DbDoctorModel>(doctor);
 
-            //var addedOffice = await _dbService.AddOffice(dbOffice);
+            var addedDoctor = await _dbService.AddDoctor(dbDoctor);
 
-            //Log.Information("Office created => {@addedOffice}", addedOffice);
+            Log.Information("Doctor created => {@addedDoctor}", addedDoctor);
 
-            //var clientOffice = _mapper.Map<ClientOfficeModel>(addedOffice);
+            var clientDoctor = _mapper.Map<ClientDoctorModel>(addedDoctor);
 
-            //return clientOffice;
+            return clientDoctor;
         }
 
         [HttpPut]
-        [Authorize("doctors.edit")]
         public async Task<ActionResult<ClientDoctorModel>> UpdateDoctor([FromBody] ClientDoctorModel doctor)
         {
-            //var dbOffice = _mapper.Map<DbOfficeModel>(office);
+            var dbDoctor = _mapper.Map<DbDoctorModel>(doctor);
 
-            //var updatedOffice = await _dbService.UpdateOffice(dbOffice);
+            if (User.IsInRole("receptionist") || User.IsInRole("admin") || CurrentUserIsDoctor(dbDoctor.AccountId))
+            {
+                var updatedDoctor = await _dbService.UpdateDoctor(dbDoctor);
 
-            //Log.Information("Office updated => {@addedOffice}", updatedOffice);
+                Log.Information("Doctor updated => {@updatedDoctor}", updatedDoctor);
 
-            //var clientOffice = _mapper.Map<ClientOfficeModel>(updatedOffice);
+                var clientDoctor = _mapper.Map<ClientDoctorModel>(updatedDoctor);
 
-            //return clientOffice;
+                return clientDoctor;
+            }
+            else
+            {
+                throw new ProfilesException("Forbidden", 403);
+            }
+        }
+
+        private bool CurrentUserIsDoctor(Guid doctorAccountId)
+        {
+            return User.IsInRole("doctor") && doctorAccountId.ToString() == User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value;
         }
     }
 }

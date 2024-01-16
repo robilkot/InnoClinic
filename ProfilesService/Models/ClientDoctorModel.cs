@@ -4,7 +4,7 @@ namespace ProfilesService.Models
 {
     public class ClientDoctorModel
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         [Required]
         public string FirstName { get; set; }
         [Required]
@@ -12,7 +12,7 @@ namespace ProfilesService.Models
         public string? MiddleName { get; set; }
         [Required]
         public string? Email { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public Guid? AccountId { get; set; }
         public Guid SpecializationId { get; set; }
         // specname is redundant
@@ -21,6 +21,6 @@ namespace ProfilesService.Models
         // address is redundant
         public string OfficeAddress { get; set; }
         public DateTime CareerStart { get; set; }
-        public DoctorStatusEnum Status { get; set; }
+        public DoctorStatusEnum? Status { get; set; }
     }
 }

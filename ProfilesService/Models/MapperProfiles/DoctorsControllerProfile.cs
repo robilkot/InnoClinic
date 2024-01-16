@@ -7,7 +7,7 @@ namespace ProfilesService.Models.MapperProfiles
     {
         public DoctorsControllerProfile()
         {
-            CreateMap<DbDoctorModel, ClientDoctorModel>().ReverseMap();
+            CreateMap<DbDoctorModel, ClientDoctorModelForPatient>().ReverseMap();
         }
     }
 }
