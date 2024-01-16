@@ -173,5 +173,80 @@ namespace ProfilesService.Services
 
             return toEdit;
         }
+
+
+        public async Task<IEnumerable<DbReceptionistModel>> GetReceptionists(int pageNumber, int pageSize, string? name)
+        {
+            IQueryable<DbReceptionistModel> query = _dbContext.Receptionists;
+
+            if (name != null)
+            {
+                query = query.Where(d => d.FirstName + ' ' + d.MiddleName + ' ' + d.LastName == name); // todo: this is bs check
+            }
+
+            query = query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            IEnumerable<DbReceptionistModel> patients = await query.AsNoTracking().ToListAsync();
+
+            return patients;
+        }
+
+        public async Task<DbReceptionistModel> GetReceptionist(Guid id)
+        {
+            // todo: is this obj being tracked?
+            var receptionist = await _dbContext.Receptionists.FirstOrDefaultAsync(d => d.Id == id);
+
+            if (receptionist == null)
+            {
+                throw new ProfilesException("Receptionist not found", 404);
+            }
+
+            return receptionist;
+        }
+
+        public async Task<DbReceptionistModel> AddReceptionist(DbReceptionistModel receptionist)
+        {
+            receptionist.Id = Guid.NewGuid();
+
+            _dbContext.Receptionists.Add(receptionist);
+
+            await _dbContext.SaveChangesAsync();
+
+            return receptionist;
+        }
+
+        public async Task<DbReceptionistModel> DeleteReceptionist(Guid id)
+        {
+            var receptionist = await _dbContext.Receptionists.FirstOrDefaultAsync(o => o.Id == id);
+
+            if (receptionist == null)
+            {
+                throw new ProfilesException("Receptionist not found", 404);
+            }
+
+            _dbContext.Receptionists.Remove(receptionist);
+
+            await _dbContext.SaveChangesAsync();
+
+            return receptionist;
+        }
+
+        public async Task<DbReceptionistModel> UpdateReceptionist(DbReceptionistModel receptionist)
+        {
+            var toEdit = await _dbContext.Receptionists.FirstOrDefaultAsync(o => o.Id == receptionist.Id);
+
+            if (toEdit == null)
+            {
+                throw new ProfilesException("Receptionist not found", 404);
+            }
+
+            _dbContext.Entry(toEdit).CurrentValues.SetValues(receptionist);
+
+            await _dbContext.SaveChangesAsync();
+
+            return toEdit;
+        }
     }
 }

@@ -35,7 +35,9 @@ builder.Services.AddDbContext<ProfilesDbContext>(
 
 
 builder.Services.AddAutoMapper(typeof(DoctorsControllerProfile));
-//builder.Services.AddAutoMapper(typeof(PatientsControllerProfile));
+builder.Services.AddAutoMapper(typeof(PatientsControllerProfile));
+builder.Services.AddAutoMapper(typeof(ReceptionistsControllerProfile));
+
 builder.Services.AddScoped<DbService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -58,7 +60,11 @@ builder.Services.AddSwaggerGen(options =>
             {
                 AuthorizationUrl = new Uri($"{authorityString}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityString}/connect/token"),
-                Scopes = new Dictionary<string, string> { { "doctors.edit", "Edit doctors" } }
+                Scopes = new Dictionary<string, string> {
+                    { "doctors.edit", "Edit doctors" },
+                    { "patients.edit", "Edit patients" },
+                    { "receptionists.edit", "Edit receptionists" }
+                }
             }
         },
     });
@@ -97,6 +103,12 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("doctors.edit", policy =>
         policy.RequireClaim("scope", "doctors.edit"));
+
+    options.AddPolicy("patients.edit", policy =>
+        policy.RequireClaim("scope", "patients.edit"));
+
+    options.AddPolicy("receptionists.edit", policy =>
+        policy.RequireClaim("scope", "receptionists.edit"));
 });
 
 builder.Services.AddControllers();
