@@ -24,6 +24,8 @@ namespace IdentityServer
                 new ApiScope("patients.edit"),
                 new ApiScope("doctors.edit"),
                 new ApiScope("receptionists.edit"),
+                new ApiScope("services.edit"),
+                new ApiScope("specializations.edit"),
             };
 
         public static IEnumerable<IdentityRole> IdentityRoles =>
@@ -77,6 +79,26 @@ namespace IdentityServer
 
                     AllowOfflineAccess = true,
                     AllowedScopes = { "patients.edit", "receptionists.edit", "doctors.edit" }
+                },
+
+                new Client
+                {
+                    ClientId = "servicesService",
+                    ClientSecrets = { new Secret("servicesService".Sha256()) },
+
+                    AllowedGrantTypes = { GrantType.AuthorizationCode },
+
+                    RedirectUris = {
+                        "https://localhost:44300/signin-oidc",
+                        "http://localhost:5003/services",
+                        "http://127.0.0.1:5003/swagger/oauth2-redirect.html"
+                    },
+
+                    FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
+                    PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
+
+                    AllowOfflineAccess = true,
+                    AllowedScopes = { "services.edit", "specializations.edit" }
                 },
             };
     }

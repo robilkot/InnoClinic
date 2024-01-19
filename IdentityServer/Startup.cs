@@ -141,7 +141,7 @@ namespace IdentityServer
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
             }
-            //InitializeDatabase(app);
+            InitializeDatabase(app);
 
             app.UseCors("AllowCors");
 

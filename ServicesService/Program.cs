@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using ProfilesService.Data;
-using ProfilesService.Models.MapperProfiles;
-using ProfilesService.Services;
 using Serilog;
+using ServicesService.Domain.Interfaces;
+using ServicesService.Infrastructure.Data;
+using ServicesService.Infrastructure.Services;
+using ServicesService.Presentation.Models.Mappers;
 using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,23 +31,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<ProfilesDbContext>(
+builder.Services.AddDbContext<ServicesDbContext>(
     b => b.UseSqlServer(connectionString));
 
+builder.Services.AddAutoMapper(typeof(ControllerProfile));
 
-builder.Services.AddAutoMapper(typeof(DoctorsControllerProfile));
-builder.Services.AddAutoMapper(typeof(PatientsControllerProfile));
-builder.Services.AddAutoMapper(typeof(ReceptionistsControllerProfile));
-
-builder.Services.AddScoped<DbService>();
+builder.Services.AddScoped<IServiceDBService, DbService>();
+builder.Services.AddScoped<ISpecializationDBService, DbService>();
 
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Innoclinic profiles service API",
-        Description = "An ASP.NET Core Web API for managing profiles",
+        Title = "Innoclinic services service API",
+        Description = "An ASP.NET Core Web API for managing services",
     });
 
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -60,9 +58,8 @@ builder.Services.AddSwaggerGen(options =>
                 AuthorizationUrl = new Uri($"{authorityString}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityString}/connect/token"),
                 Scopes = new Dictionary<string, string> {
-                    { "doctors.edit", "Edit doctors" },
-                    { "patients.edit", "Edit patients" },
-                    { "receptionists.edit", "Edit receptionists" }
+                    { "services.edit", "Edit services" },
+                    { "specializations.edit", "Edit specializations" }
                 }
             }
         },
@@ -70,7 +67,7 @@ builder.Services.AddSwaggerGen(options =>
         In = ParameterLocation.Header,
     });
 
-options.OperationFilter<SecurityRequirementsOperationFilter>();
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
 builder.Services.AddAuthentication(options =>
@@ -104,14 +101,11 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("doctors.edit", policy =>
-        policy.RequireClaim("scope", "doctors.edit"));
+    options.AddPolicy("services.edit", policy =>
+        policy.RequireClaim("scope", "services.edit"));
 
-    options.AddPolicy("patients.edit", policy =>
-        policy.RequireClaim("scope", "patients.edit"));
-
-    options.AddPolicy("receptionists.edit", policy =>
-        policy.RequireClaim("scope", "receptionists.edit"));
+    options.AddPolicy("specializations.edit", policy =>
+        policy.RequireClaim("scope", "specializations.edit"));
 });
 
 builder.Services.AddControllers();
@@ -126,8 +120,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(setup =>
     {
         setup.SwaggerEndpoint($"/swagger/v1/swagger.json", "Version 1.0");
-        setup.OAuthClientId("profilesService");
-        setup.OAuthAppName("Profiles Service");
+        setup.OAuthClientId("servicesService");
+        setup.OAuthAppName("Services Service");
         //setup.OAuthScopeSeparator(" ");
         setup.OAuthUsePkce();
     });
