@@ -1,8 +1,9 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OfficesService.Data.Models;
 using OfficesService.Models;
-using OfficesService.Services;
+using OfficesService.Repository;
 using Serilog;
 
 namespace OfficesService.Controllers
@@ -12,19 +13,18 @@ namespace OfficesService.Controllers
     [Authorize("offices.edit")]
     public class OfficesController : ControllerBase
     {
-        private readonly DbService _dbService;
+        IRepository<DbOfficeModel> _officesRepository;
         private readonly IMapper _mapper;
-        public OfficesController(DbService dbService, IMapper mapper)
+        public OfficesController(IRepository<DbOfficeModel> dbService, IMapper mapper)
         {
-            _dbService = dbService;
+            _officesRepository = dbService;
             _mapper = mapper;
         }
 
         [HttpGet]
-        //[AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ClientOfficeModel>>> GetOffices()
         {
-            var dbOffices = await _dbService.GetOffices();
+            var dbOffices = await _officesRepository.GetAll();
 
             var clientOffices = _mapper.Map<IEnumerable<ClientOfficeModel>>(dbOffices);
 
@@ -34,7 +34,7 @@ namespace OfficesService.Controllers
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult<ClientOfficeModel>> GetOffice(Guid id)
         {
-            var dbOffice = await _dbService.GetOffice(id);
+            var dbOffice = await _officesRepository.Get(id);
 
             var clientOffice = _mapper.Map<ClientOfficeModel>(dbOffice);
 
@@ -44,7 +44,7 @@ namespace OfficesService.Controllers
         [HttpDelete("{id:Guid}")]
         public async Task<ActionResult<ClientOfficeModel>> DeleteOffice(Guid id)
         {
-            var dbOffice = await _dbService.DeleteOffice(id);
+            var dbOffice = await _officesRepository.Delete(id);
 
             Log.Information("Office deleted => {@dbOffice}", dbOffice);
 
@@ -58,7 +58,7 @@ namespace OfficesService.Controllers
         {
             var dbOffice = _mapper.Map<DbOfficeModel>(office);
 
-            var addedOffice = await _dbService.AddOffice(dbOffice);
+            var addedOffice = await _officesRepository.Add(dbOffice);
 
             Log.Information("Office created => {@addedOffice}", addedOffice);
 
@@ -72,7 +72,7 @@ namespace OfficesService.Controllers
         {
             var dbOffice = _mapper.Map<DbOfficeModel>(office);
 
-            var updatedOffice = await _dbService.UpdateOffice(dbOffice);
+            var updatedOffice = await _officesRepository.Update(dbOffice);
 
             Log.Information("Office updated => {@addedOffice}", updatedOffice);
 

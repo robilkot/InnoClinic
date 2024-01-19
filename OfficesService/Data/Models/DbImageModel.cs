@@ -1,4 +1,4 @@
-﻿namespace OfficesService.Models
+﻿namespace OfficesService.Data.Models
 {
     public class DbImageModel
     {

@@ -1,5 +1,6 @@
 ﻿using static System.Runtime.InteropServices.JavaScript.JSType;
 using AutoMapper;
+using OfficesService.Data.Models;
 
 namespace OfficesService.Models.MapperProfiles
 {

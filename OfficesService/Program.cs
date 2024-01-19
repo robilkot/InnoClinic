@@ -1,16 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using OfficesService.Data;
+using OfficesService.Data.Models;
 using OfficesService.Models.MapperProfiles;
-using OfficesService.Services;
+using OfficesService.Repository;
 using Serilog;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var authorityString = Environment.GetEnvironmentVariable("IdentityPath") ?? builder.Configuration["IdentityPath"];
-var connectionString = Environment.GetEnvironmentVariable("DbConnection") ?? builder.Configuration.GetConnectionString("DbConnection");
 
 // Add services to the container.
 
@@ -29,13 +28,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<OfficesDbContext>(
-    b => b.UseSqlServer(connectionString)
-    .UseLazyLoadingProxies());
-
-
 builder.Services.AddAutoMapper(typeof(OfficesControllerProfile));
-builder.Services.AddScoped<DbService>();
+// todo: scoped vs transient?
+builder.Services.AddTransient<IRepository<DbOfficeModel>, OfficeRepository>();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -58,7 +53,11 @@ builder.Services.AddSwaggerGen(options =>
                 Scopes = new Dictionary<string, string> { { "offices.edit", "Edit offices" } }
             }
         },
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        In = ParameterLocation.Header,
     });
+
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
 builder.Services.AddAuthentication(options =>
@@ -82,7 +81,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false,
         ValidateIssuer = true,
         ValidIssuer = authorityString,
-      
+
         ValidateIssuerSigningKey = false,
         ValidateLifetime = true,
 

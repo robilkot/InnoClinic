@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OfficesService.Models;
+using OfficesService.Data.Models;
 
 namespace OfficesService.Data
 {

@@ -37,7 +37,6 @@ namespace IdentityServer
         public static IEnumerable<Client> Clients =>
             new Client[]
             {
-                // interactive client using code flow + pkce
                 new Client
                 {
                     ClientId = "officesService",

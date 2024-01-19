@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using OfficesService.Data.Models;
 
 namespace OfficesService.Models
 {
