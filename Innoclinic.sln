@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityServer", "IdentityS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProfilesService", "ProfilesService\ProfilesService.csproj", "{2507383F-9165-406E-A060-14DDE1A8FAAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesService", "ServicesService\ServicesService.csproj", "{CD97B240-99A0-43CD-B6C3-B030A1D81075}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesService", "ServicesService\ServicesService.csproj", "{CD97B240-99A0-43CD-B6C3-B030A1D81075}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{B084E984-16D7-4DEA-AE44-9A7DBAC1A1CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CD97B240-99A0-43CD-B6C3-B030A1D81075}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD97B240-99A0-43CD-B6C3-B030A1D81075}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD97B240-99A0-43CD-B6C3-B030A1D81075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B084E984-16D7-4DEA-AE44-9A7DBAC1A1CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B084E984-16D7-4DEA-AE44-9A7DBAC1A1CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B084E984-16D7-4DEA-AE44-9A7DBAC1A1CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B084E984-16D7-4DEA-AE44-9A7DBAC1A1CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

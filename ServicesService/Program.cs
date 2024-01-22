@@ -25,6 +25,8 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
 
+builder.Configuration.AddEnvironmentVariables();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCors", builder =>

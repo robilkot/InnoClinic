@@ -16,6 +16,8 @@ namespace ServicesService.Infrastructure.Data
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            builder.Entity<Service>().Property(o => o.Price).HasPrecision(12, 10);
+            
             base.OnModelCreating(builder);
         }
     }
