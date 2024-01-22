@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ServicesService.Domain.Entities;
+using ServicesService.Domain.Exceptions;
 using ServicesService.Domain.Interfaces;
 using ServicesService.Infrastructure.Services;
 using ServicesService.Presentation.Models;
@@ -14,11 +17,13 @@ namespace ServicesService.Presentation.Controllers
     public class ServicesController : ControllerBase
     {
         private readonly IServiceDBService _dbService;
+        private readonly IValidator<ClientServiceModel> _validator;
         private readonly IMapper _mapper;
-        public ServicesController(IServiceDBService dbService, IMapper mapper)
+        public ServicesController(IServiceDBService dbService, IMapper mapper, IValidator<ClientServiceModel> validator)
         {
             _dbService = dbService;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -60,6 +65,15 @@ namespace ServicesService.Presentation.Controllers
         [Authorize("services.edit")]
         public async Task<ActionResult<ClientServiceModel>> CreateService([FromBody] ClientServiceModel service)
         {
+            var result = await _validator.ValidateAsync(service);
+                
+            if(!result.IsValid)
+            {
+                result.AddToModelState(ModelState);
+
+                return ValidationProblem(ModelState);
+            }
+
             var dbPatient = _mapper.Map<Service>(service);
 
             var addedService = await _dbService.Add(dbPatient);
@@ -75,6 +89,15 @@ namespace ServicesService.Presentation.Controllers
         [Authorize("services.edit")]
         public async Task<ActionResult<ClientServiceModel>> UpdateService([FromBody] ClientServiceModel service)
         {
+            var result = await _validator.ValidateAsync(service);
+
+            if (!result.IsValid)
+            {
+                result.AddToModelState(ModelState);
+
+                return ValidationProblem(ModelState);
+            }
+
             var dbPatient = _mapper.Map<Service>(service);
 
             var updatedService = await _dbService.Update(dbPatient);

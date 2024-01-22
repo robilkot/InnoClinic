@@ -1,12 +1,16 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using ServicesService.Domain.Entities;
 using ServicesService.Domain.Interfaces;
 using ServicesService.Infrastructure.Data;
 using ServicesService.Infrastructure.Services;
+using ServicesService.Presentation.Models;
 using ServicesService.Presentation.Models.Mappers;
+using ServicesService.Presentation.Models.Validators;
 using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +42,8 @@ builder.Services.AddAutoMapper(typeof(ControllerProfile));
 
 builder.Services.AddScoped<IServiceDBService, DbService>();
 builder.Services.AddScoped<ISpecializationDBService, DbService>();
+builder.Services.AddScoped<IValidator<ClientServiceModel>, ServiceModelValidator>();
+builder.Services.AddScoped<IValidator<ClientSpecializationModel>, SpecializationModelValidator>();
 
 builder.Services.AddSwaggerGen(options =>
 {

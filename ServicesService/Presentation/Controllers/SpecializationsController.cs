@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -13,10 +15,12 @@ namespace ServicesService.Presentation.Controllers
     {
         private readonly ISpecializationDBService _dbService;
         private readonly IMapper _mapper;
-        public SpecializationsController(ISpecializationDBService dbService, IMapper mapper)
+        private readonly IValidator<ClientSpecializationModel> _validator;
+        public SpecializationsController(ISpecializationDBService dbService, IMapper mapper, IValidator<ClientSpecializationModel> validator)
         {
             _dbService = dbService;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -56,6 +60,15 @@ namespace ServicesService.Presentation.Controllers
         [Authorize("specializations.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> CreateService([FromBody] ClientSpecializationModel spec)
         {
+            var result = await _validator.ValidateAsync(spec);
+
+            if (!result.IsValid)
+            {
+                result.AddToModelState(ModelState);
+
+                return ValidationProblem(ModelState);
+            }
+
             var dbSpec = _mapper.Map<Specialization>(spec);
 
             var addedSpec = await _dbService.Add(dbSpec);
@@ -69,9 +82,18 @@ namespace ServicesService.Presentation.Controllers
 
         [HttpPut]
         [Authorize("specializations.edit")]
-        public async Task<ActionResult<ClientSpecializationModel>> UpdateService([FromBody] ClientSpecializationModel service)
+        public async Task<ActionResult<ClientSpecializationModel>> UpdateService([FromBody] ClientSpecializationModel spec)
         {
-            var dbSpec = _mapper.Map<Specialization>(service);
+            var result = await _validator.ValidateAsync(spec);
+
+            if (!result.IsValid)
+            {
+                result.AddToModelState(ModelState);
+
+                return ValidationProblem(ModelState);
+            }
+
+            var dbSpec = _mapper.Map<Specialization>(spec);
 
             var updatedSpec = await _dbService.Update(dbSpec);
 
