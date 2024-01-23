@@ -4,10 +4,9 @@ services:
   servicesservice:
     image: ${DOCKER_REGISTRY-}servicesservice
     depends_on:
-      - sql
+      - servicesdb
     ports:
       - "5003:5003" 
-      - "5000:5000" 
     build:
       context: .
       dockerfile: ServicesService/Dockerfile
@@ -15,11 +14,48 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:5003
       - DbConnection=Server=InnoClinicServicesDb,1433;Database=InnoClinicServices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-  sql:
+      - IdentityPath=http://innoclinic-identityserver-1:5000
+      - IdentityPathOuter=http://localhost:5000
+  identityserver:
+    image: ${DOCKER_REGISTRY-}identityserver
+    depends_on:
+      - identityserverdb
+    ports:
+      - "5000:5000" 
+    build:
+      context: .
+      dockerfile: IdentityServer/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:5000
+      - DbConnection=Server=InnoClinicIdentityDb,1433;Database=InnoClinicIdentity;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+
+
+  servicesdb:
     image: "mcr.microsoft.com/mssql/server:2022-latest"
     container_name: InnoClinicServicesDb
+    ports:
+      - "1434:1433"
+    environment:
+      - ACCEPT_EULA=y
+      - MSSQL_SA_PASSWORD=InnoClinic123$
+    volumes:
+      - 'services-dbdata:/var/opt/mssql'
+ 
+  identityserverdb:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: InnoClinicIdentityDb
     ports:
       - "1433:1433" 
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_PASSWORD=InnoClinic123$
+    volumes:
+      - 'identityserver-dbdata:/var/opt/mssql'
+
+
+volumes:
+  services-dbdata:
+    driver: local  
+  identityserver-dbdata:
+    driver: local 

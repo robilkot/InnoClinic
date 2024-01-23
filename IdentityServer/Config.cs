@@ -49,6 +49,7 @@ namespace IdentityServer
                     RedirectUris = {
                         "https://localhost:44300/signin-oidc",
                         "http://localhost:5001/offices",
+                        "http://localhost:5001/swagger/oauth2-redirect.html",
                         "http://127.0.0.1:5001/swagger/oauth2-redirect.html"
                     },
 
@@ -71,6 +72,7 @@ namespace IdentityServer
                         "http://localhost:5002/patients",
                         "http://localhost:5002/doctors",
                         "http://localhost:5002/receptionists",
+                        "http://localhost:5002/swagger/oauth2-redirect.html",
                         "http://127.0.0.1:5002/swagger/oauth2-redirect.html"
                     },
 
@@ -91,6 +93,7 @@ namespace IdentityServer
                     RedirectUris = {
                         "https://localhost:44300/signin-oidc",
                         "http://localhost:5003/services",
+                        "http://localhost:5003/swagger/oauth2-redirect.html",
                         "http://127.0.0.1:5003/swagger/oauth2-redirect.html"
                     },
 

@@ -68,8 +68,8 @@ namespace IdentityServer
                             throw new Exception(result.Errors.First().Description);
                         }
 
-                        await userMgr.AddToRoleAsync(alice, "admin");
-                        await userMgr.AddToRoleAsync(alice, "receptionist");
+                        //await userMgr.AddToRoleAsync(alice, "admin");
+                        //await userMgr.AddToRoleAsync(alice, "receptionist");
 
                         result = userMgr.AddClaimsAsync(alice, new Claim[]{
                             new Claim(JwtClaimTypes.Name, "Alice Smith"),
@@ -103,7 +103,7 @@ namespace IdentityServer
                             throw new Exception(result.Errors.First().Description);
                         }
 
-                        await userMgr.AddToRoleAsync(bob, "patient");
+                        //await userMgr.AddToRoleAsync(bob, "patient");
 
                         result = await userMgr.AddClaimsAsync(bob, new Claim[]{
                             new Claim(JwtClaimTypes.Name, "Bob Smith"),

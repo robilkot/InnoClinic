@@ -31,10 +31,11 @@ namespace IdentityServer
 
         public void ConfigureServices(IServiceCollection services)
         {
+
             services.AddControllersWithViews();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -68,14 +69,14 @@ namespace IdentityServer
                 {
                     options.ResolveDbContextOptions = (provider, builder) =>
                     {
-                        builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                        builder.UseSqlServer(Configuration.GetConnectionString("DbConnection"),
                             sql => sql.MigrationsAssembly(migrationsAssembly));
                     };
                 })
                 .AddOperationalStore(options =>
                 {
                     options.ConfigureDbContext = builder =>
-                    builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                    builder.UseSqlServer(Configuration.GetConnectionString("DbConnection"),
                             sql => sql.MigrationsAssembly(migrationsAssembly));
                 });
 
@@ -100,19 +101,32 @@ namespace IdentityServer
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
-                serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
-
                 var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+                context.Database.EnsureCreated();
                 context.Database.Migrate();
 
+                foreach (var client in context.Clients)
+                {
+                    context.Clients.Remove(client);
+                }
+                context.SaveChanges();
+                
                 foreach (var client in Config.Clients)
                 {
-                    if (context.Clients.FirstOrDefault(s => s.ClientId == client.ClientId) == null)
+                    var found = context.Clients.FirstOrDefault(s => s.ClientId == client.ClientId);
+                    if (found == null)
                     {
                         context.Clients.Add(client.ToEntity());
                     }
                 }
                 context.SaveChanges();
+
+                foreach (var client in context.IdentityResources)
+                {
+                    context.IdentityResources.Remove(client);
+                }
+                context.SaveChanges();
+
 
                 foreach (var resource in Config.IdentityResources)
                 {
@@ -120,6 +134,12 @@ namespace IdentityServer
                     {
                         context.IdentityResources.Add(resource.ToEntity());
                     }
+                }
+                context.SaveChanges();
+
+                foreach (var client in context.ApiScopes)
+                {
+                    context.ApiScopes.Remove(client);
                 }
                 context.SaveChanges();
 
