@@ -1,16 +1,10 @@
 using AutoMapper;
-using Azure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Moq;
 using OfficesService.Controllers;
 using OfficesService.Data.Models;
 using OfficesService.Models;
 using OfficesService.Models.MapperProfiles;
 using OfficesService.Repository;
-using System.Runtime.CompilerServices;
 
 namespace OfficesServiceTest
 {
@@ -62,10 +56,11 @@ namespace OfficesServiceTest
             var result = await controller.GetOffice(id);
 
             // Assert
-            Assert.Multiple()
-            Assert.NotNull(result.Value);
-            Assert.IsType<ClientOfficeModel>(result.Value);
-            Assert.Equal(id, result.Value.Id);
+            Assert.Multiple(
+                () => { Assert.NotNull(result.Value); },
+                () => { Assert.IsType<ClientOfficeModel>(result.Value); },
+                () => { Assert.Equal(id, result.Value?.Id); }
+            );
         }
 
         [Fact]

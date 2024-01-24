@@ -12,6 +12,7 @@ using Swashbuckle.AspNetCore.Filters;
 var builder = WebApplication.CreateBuilder(args);
 
 var authorityString = Environment.GetEnvironmentVariable("IdentityPath") ?? builder.Configuration["IdentityPath"];
+var authorityStringOuter = Environment.GetEnvironmentVariable("IdentityPathOuter") ?? builder.Configuration["IdentityPathOuter"];
 var connectionString = Environment.GetEnvironmentVariable("DbConnection") ?? builder.Configuration.GetConnectionString("DbConnection");
 
 // Add services to the container.
@@ -57,8 +58,8 @@ builder.Services.AddSwaggerGen(options =>
         {
             AuthorizationCode = new OpenApiOAuthFlow
             {
-                AuthorizationUrl = new Uri($"{authorityString}/connect/authorize"),
-                TokenUrl = new Uri($"{authorityString}/connect/token"),
+                AuthorizationUrl = new Uri($"{authorityStringOuter}/connect/authorize"),
+                TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
                 Scopes = new Dictionary<string, string> {
                     { "doctors.edit", "Edit doctors" },
                     { "patients.edit", "Edit patients" },
@@ -93,7 +94,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateAudience = false,
         ValidateIssuer = true,
-        ValidIssuer = authorityString,
+        ValidIssuer = authorityStringOuter,
 
         ValidateIssuerSigningKey = false,
         ValidateLifetime = true,

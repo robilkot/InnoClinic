@@ -28,7 +28,6 @@ namespace OfficesService.Middleware
                     if (officesEx.StatusCode != null)
                     { 
                         context.Response.StatusCode = (int)officesEx.StatusCode;
-                        await context.Response.CompleteAsync();
                     }
                 }
                 else

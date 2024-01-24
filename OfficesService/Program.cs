@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Filters;
 var builder = WebApplication.CreateBuilder(args);
 
 var authorityString = Environment.GetEnvironmentVariable("IdentityPath") ?? builder.Configuration["IdentityPath"];
+var authorityStringOuter = Environment.GetEnvironmentVariable("IdentityPathOuter") ?? builder.Configuration["IdentityPathOuter"];
 
 // Add services to the container.
 
@@ -48,8 +49,8 @@ builder.Services.AddSwaggerGen(options =>
         {
             AuthorizationCode = new OpenApiOAuthFlow
             {
-                AuthorizationUrl = new Uri($"{authorityString}/connect/authorize"),
-                TokenUrl = new Uri($"{authorityString}/connect/token"),
+                AuthorizationUrl = new Uri($"{authorityStringOuter}/connect/authorize"),
+                TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
                 Scopes = new Dictionary<string, string> { { "offices.edit", "Edit offices" } }
             }
         },
@@ -80,7 +81,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateAudience = false,
         ValidateIssuer = true,
-        ValidIssuer = authorityString,
+        ValidIssuer = authorityStringOuter,
 
         ValidateIssuerSigningKey = false,
         ValidateLifetime = true,
@@ -114,7 +115,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseExceptionHandler();
+//app.UseExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();

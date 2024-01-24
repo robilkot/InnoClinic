@@ -24,4 +24,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CommonData\CommonData.csproj" />
+  </ItemGroup>
+
 </Project>
