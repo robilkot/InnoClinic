@@ -5,7 +5,6 @@ services:
     image: rabbitmq:3-management
     hostname: rabbitmq
     container_name: RabbitMq
-    restart: always
     environment:
       - RABBITMQ_DEFAULT_USER=rmuser
       - RABBITMQ_DEFAULT_PASS=rmpassword
@@ -87,7 +86,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:5003
-      - DbConnection=Server=ServicesDb,1433;Database=InnoClinicServices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+      - DbConnection:mongodb://InnoClinic:InnoClinic123$@ServicesDb:27017
       - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
       - RabbitMq:Host=rabbitmq
@@ -118,13 +117,25 @@ services:
       - 'profiles-dbdata:/var/opt/mssql'
   
   servicesdb:
-    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    image: "mongodb/mongodb-community-server:latest"
     container_name: ServicesDb
     ports:
-      - "1436:1433"
+      - "27017:27017"
     environment:
-      - ACCEPT_EULA=y
-      - MSSQL_SA_PASSWORD=InnoClinic123$
+      MONGO_INITDB_ROOT_USERNAME: "InnoClinic"
+      MONGO_INITDB_ROOT_PASSWORD: "InnoClinic123$"
+    volumes:
+      - 'services-dbdata:/var/opt/mssql'
+
+  appointmentsdb:
+    image: "postgres:latest"
+    container_name: AppointmentsDb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "habrdb"  
+      POSTGRES_PASSWORD: "InnoClinic123$"
+      POSTGRES_USER: "InnoClinic"
     volumes:
       - 'services-dbdata:/var/opt/mssql'
  

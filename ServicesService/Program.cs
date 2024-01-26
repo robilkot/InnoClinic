@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using Serilog;
 using ServicesService.Consumers;
 using ServicesService.Domain.Entities;
 using ServicesService.Domain.Interfaces;
-using ServicesService.Infrastructure.Data;
 using ServicesService.Infrastructure.Services;
 using ServicesService.Presentation.Models;
 using ServicesService.Presentation.Models.Mappers;
@@ -43,8 +43,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<ServicesDbContext>(
-    b => b.UseSqlServer(connectionString));
+builder.Services.AddSingleton(new MongoClient(connectionString).GetDatabase("InnoClinicServices"));
 
 builder.Services.AddAutoMapper(typeof(ControllerProfile));
 

@@ -1,16 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using ServicesService.Domain.Entities;
 using ServicesService.Domain.Exceptions;
 using ServicesService.Domain.Interfaces;
-using ServicesService.Infrastructure.Data;
 
 namespace ServicesService.Infrastructure.Services
 {
     public class DbService : IServiceDBService, ISpecializationDBService, ICategoryDBService
     {
-        private readonly ServicesDbContext _dbContext;
+        private readonly IMongoDatabase _dbContext;
 
-        public DbService(ServicesDbContext dbContext)
+        public DbService(IMongoDatabase dbContext)
         {
             _dbContext = dbContext;
         }
@@ -19,32 +19,34 @@ namespace ServicesService.Infrastructure.Services
         {
             service.Id = Guid.NewGuid();
 
-            _dbContext.Services.Add(service);
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
 
-            await _dbContext.SaveChangesAsync();
+            await servicesCollection.InsertOneAsync(service);
 
             return service;
         }
 
         public async Task<Service> Delete(Guid id)
         {
-            var service = await _dbContext.Services.FirstOrDefaultAsync(o => o.Id == id);
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            var service = await servicesCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
 
             if (service == null)
             {
                 throw new ServicesException("Service not found", 404);
             }
 
-            _dbContext.Services.Remove(service);
-
-            await _dbContext.SaveChangesAsync();
+            await servicesCollection.DeleteOneAsync(s => s.Id == id);
 
             return service;
         }
 
         public async Task<Service> Get(Guid id)
         {
-            var service = await _dbContext.Services.FirstOrDefaultAsync(d => d.Id == id);
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            var service = await servicesCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
 
             if (service == null)
             {
@@ -56,173 +58,183 @@ namespace ServicesService.Infrastructure.Services
 
         public async Task<IEnumerable<Service>> Get(int page, int pageSize, IEnumerable<Guid>? categories)
         {
-            IQueryable<Service> query = _dbContext.Services;
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            var filterBuilder = Builders<Service>.Filter;
+            FilterDefinition<Service> filter = filterBuilder.Empty;
 
             if (categories != null && categories.Any())
             {
-                query = query.Where(s => categories.Contains(s.CategoryId));
+                filter &= filterBuilder.In(s => s.CategoryId, categories);
             }
 
-            query = query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
+            FindOptions<Service> options = new FindOptions<Service>();
+            options.Skip = (page - 1) * pageSize;
+            options.Limit = pageSize;
 
-            IEnumerable<Service> services = await query.AsNoTracking().ToListAsync();
-
-            return services;
+            using (var cursor = await servicesCollection.FindAsync(filter, options))
+            {
+                return await cursor.ToListAsync();
+            }
         }
 
         public async Task<Service> Update(Service service)
         {
-            var toEdit = await _dbContext.Services.FirstOrDefaultAsync(o => o.Id == service.Id);
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            var toEdit = await servicesCollection.Find(s => s.Id == service.Id).FirstOrDefaultAsync();
 
             if (toEdit == null)
             {
-                throw new ServicesException("Services not found", 404);
+                throw new ServicesException("Service not found", 404);
             }
 
-            _dbContext.Entry(toEdit).CurrentValues.SetValues(service);
-
-            await _dbContext.SaveChangesAsync();
+            await servicesCollection.ReplaceOneAsync(s => s.Id == service.Id, service);
 
             return toEdit;
         }
 
 
-        public async Task<Specialization> Add(Specialization service)
+        public async Task<Specialization> Add(Specialization spec)
         {
-            service.Id = Guid.NewGuid();
+            spec.Id = Guid.NewGuid();
 
-            _dbContext.Specializations.Add(service);
+            var specCollection = _dbContext.GetCollection<Specialization>("Specializations");
 
-            await _dbContext.SaveChangesAsync();
+            await specCollection.InsertOneAsync(spec);
 
-            return service;
+            return spec;
         }
 
-        public async Task<Specialization> Update(Specialization service)
+        public async Task<Specialization> Update(Specialization spec)
         {
-            var toEdit = await _dbContext.Specializations.FirstOrDefaultAsync(o => o.Id == service.Id);
+            var specCollection = _dbContext.GetCollection<Specialization>("Specializations");
+
+            var toEdit = await specCollection.Find(s => s.Id == spec.Id).FirstOrDefaultAsync();
 
             if (toEdit == null)
             {
                 throw new ServicesException("Specialization not found", 404);
             }
 
-            _dbContext.Entry(toEdit).CurrentValues.SetValues(service);
-
-            await _dbContext.SaveChangesAsync();
+            await specCollection.ReplaceOneAsync(s => s.Id == spec.Id, spec);
 
             return toEdit;
         }
 
         async Task<Specialization> ISpecializationDBService.Delete(Guid id)
         {
-            var service = await _dbContext.Specializations.FirstOrDefaultAsync(o => o.Id == id);
+            var specCollection = _dbContext.GetCollection<Specialization>("Specializations");
 
-            if (service == null)
+            var spec = await specCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
+
+            if (spec == null)
             {
                 throw new ServicesException("Specialization not found", 404);
             }
 
-            _dbContext.Specializations.Remove(service);
+            await specCollection.DeleteOneAsync(s => s.Id == id);
 
-            await _dbContext.SaveChangesAsync();
-
-            return service;
+            return spec;
         }
 
         async Task<Specialization> ISpecializationDBService.Get(Guid id)
         {
-            var service = await _dbContext.Specializations.FirstOrDefaultAsync(d => d.Id == id);
+            var specializationsCollection = _dbContext.GetCollection<Specialization>("Specializations");
 
-            if (service == null)
+            var specialization = await specializationsCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
+
+            if (specialization == null)
             {
                 throw new ServicesException("Specialization not found", 404);
             }
 
-            return service;
+            return specialization;
         }
 
         async Task<IEnumerable<Specialization>> ISpecializationDBService.Get(int page, int pageSize)
         {
-            IQueryable<Specialization> query = _dbContext.Specializations;
+            var servicesCollection = _dbContext.GetCollection<Specialization>("Specializations");
 
-            query = query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
+            FindOptions<Specialization> options = new FindOptions<Specialization>();
+            options.Skip = (page - 1) * pageSize;
+            options.Limit = pageSize;
 
-            IEnumerable<Specialization> services = await query.ToListAsync();
-
-            return services;
+            using (var cursor = await servicesCollection.FindAsync(FilterDefinition<Specialization>.Empty, options))
+            {
+                return await cursor.ToListAsync();
+            }
         }
 
         async Task<Category> ICategoryDBService.Get(Guid id)
         {
-            var service = await _dbContext.Categories.FirstOrDefaultAsync(d => d.Id == id);
+            var categoriesCollection = _dbContext.GetCollection<Category>("Categories");
 
-            if (service == null)
+            var category = await categoriesCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
+
+            if (category == null)
             {
                 throw new ServicesException("Category not found", 404);
             }
 
-            return service;
+            return category;
         }
 
         public async Task<IEnumerable<Category>> Get(int page, int pageSize)
         {
-            IQueryable<Category> query = _dbContext.Categories;
+            var servicesCollection = _dbContext.GetCollection<Category>("Categories");
 
-            query = query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
+            FindOptions<Category> options = new FindOptions<Category>();
+            options.Skip = (page - 1) * pageSize;
+            options.Limit = pageSize;
 
-            IEnumerable<Category> categories = await query.AsNoTracking().ToListAsync();
-
-            return categories;
+            using (var cursor = await servicesCollection.FindAsync(FilterDefinition<Category>.Empty, options))
+            {
+                return await cursor.ToListAsync();
+            }
         }
 
         public async Task<Category> Add(Category category)
         {
             category.Id = Guid.NewGuid();
 
-            _dbContext.Categories.Add(category);
+            var specCollection = _dbContext.GetCollection<Category>("Categories");
 
-            await _dbContext.SaveChangesAsync();
+            await specCollection.InsertOneAsync(category);
 
             return category;
         }
 
         public async Task<Category> Update(Category category)
         {
-            var toEdit = await _dbContext.Categories.FirstOrDefaultAsync(o => o.Id == category.Id);
+            var specCollection = _dbContext.GetCollection<Category>("Categories");
+
+            var toEdit = await specCollection.Find(s => s.Id == category.Id).FirstOrDefaultAsync();
 
             if (toEdit == null)
             {
                 throw new ServicesException("Category not found", 404);
             }
 
-            _dbContext.Entry(toEdit).CurrentValues.SetValues(category);
-
-            await _dbContext.SaveChangesAsync();
+            await specCollection.ReplaceOneAsync(s => s.Id == category.Id, category);
 
             return toEdit;
         }
 
         async Task<Category> ICategoryDBService.Delete(Guid id)
         {
-            var service = await _dbContext.Categories.FirstOrDefaultAsync(o => o.Id == id);
+            var categoryCollection = _dbContext.GetCollection<Category>("Categories");
 
-            if (service == null)
+            var category = await categoryCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
+
+            if (category == null)
             {
                 throw new ServicesException("Category not found", 404);
             }
 
-            _dbContext.Categories.Remove(service);
+            await categoryCollection.DeleteOneAsync(s => s.Id == id);
 
-            await _dbContext.SaveChangesAsync();
-
-            return service;
+            return category;
         }
     }
 }
