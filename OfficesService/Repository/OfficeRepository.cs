@@ -4,13 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using OfficesService.Data.Models;
 using OfficesService.Exceptions;
 using System.Data;
+using Z.Dapper.Plus;
 using static Dapper.SqlMapper;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OfficesService.Repository
 {
     public class OfficeRepository : IRepository<DbOfficeModel>
     {
-        private IDbConnection _connection;
+        private readonly IDbConnection _connection;
         public OfficeRepository(IConfiguration configuration)
         {
             var connectionString = Environment.GetEnvironmentVariable("DbConnection") ?? configuration.GetConnectionString("DbConnection");
@@ -89,6 +91,11 @@ namespace OfficesService.Repository
             // query edited office
             var editedOffice = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { entity.Id });
             return editedOffice!;
+        }
+
+        public void Init()
+        {
+            _connection.CreateTable<DbOfficeModel>();
         }
     }
 }

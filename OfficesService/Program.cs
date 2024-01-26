@@ -1,6 +1,8 @@
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OfficesService.Consumers;
 using OfficesService.Data.Models;
 using OfficesService.Models.MapperProfiles;
 using OfficesService.Repository;
@@ -11,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 var authorityString = Environment.GetEnvironmentVariable("IdentityPath") ?? builder.Configuration["IdentityPath"];
 var authorityStringOuter = Environment.GetEnvironmentVariable("IdentityPathOuter") ?? builder.Configuration["IdentityPathOuter"];
+
+var rmHost = Environment.GetEnvironmentVariable("RabbitMq:Host") ?? builder.Configuration["RabbitMq:Host"];
+var rmUsername = Environment.GetEnvironmentVariable("RabbitMq:Username") ?? builder.Configuration.GetValue("RabbitMq:Username", "rmuser");
+var rmPassword = Environment.GetEnvironmentVariable("RabbitMq:Password") ?? builder.Configuration.GetValue("RabbitMq:Password", "rmpassword");
 
 // Add services to the container.
 
@@ -32,6 +38,24 @@ builder.Services.AddCors(options =>
 builder.Services.AddAutoMapper(typeof(OfficesControllerProfile));
 // todo: scoped vs transient?
 builder.Services.AddTransient<IRepository<DbOfficeModel>, OfficeRepository>();
+
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumersFromNamespaceContaining<OfficeRequestConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+
+        cfg.Host(rmHost, "/", host =>
+        {
+            host.Username(rmUsername);
+            host.Password(rmPassword);
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -99,6 +123,12 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+//{
+//    using var scope = app.Services.CreateScope();
+//    var context = scope.ServiceProvider.GetRequiredService<IRepository<DbOfficeModel>>();
+//    context.Init();
+//}
 
 app.UseCors("AllowCors");
 

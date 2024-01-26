@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfilesService.Data.Models;
 using ProfilesService.Exceptions;
 using ProfilesService.Models;
 using ProfilesService.Services;

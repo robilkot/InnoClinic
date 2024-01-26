@@ -36,6 +36,7 @@ services:
     container_name: OfficesService
     depends_on:
       - officesdb
+      - rabbitmq
     ports:
       - "5001:5001" 
     build:
@@ -45,14 +46,19 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:5001
       - DbConnection=Server=OfficesDb,1433;Database=InnoClinicOffices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-      - IdentityPath=http://identityserver:5000
+      - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
+
 
   profilesservice:
     image: ${DOCKER_REGISTRY-}profilesservice
     container_name: ProfilesService
     depends_on:
       - profilesdb
+      - rabbitmq
     ports:
       - "5002:5002" 
     build:
@@ -62,8 +68,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:5002
       - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-      - IdentityPath=http://identityserver:5000
+      - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
 
   servicesservice:
     image: ${DOCKER_REGISTRY-}servicesservice
@@ -74,14 +83,16 @@ services:
       - "5003:5003" 
     build:
       context: .
-      dockerfile: ServicesService/Dockerfile
+      dockerfile: ServicesService.Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:5003
       - DbConnection=Server=ServicesDb,1433;Database=InnoClinicServices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-      - IdentityPath=http://identityserver:5000
+      - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
-
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
 
 
   officesdb:

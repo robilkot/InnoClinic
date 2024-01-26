@@ -6,7 +6,7 @@ using ServicesService.Infrastructure.Data;
 
 namespace ServicesService.Infrastructure.Services
 {
-    public class DbService : IServiceDBService, ISpecializationDBService
+    public class DbService : IServiceDBService, ISpecializationDBService, ICategoryDBService
     {
         private readonly ServicesDbContext _dbContext;
 
@@ -155,6 +155,74 @@ namespace ServicesService.Infrastructure.Services
             IEnumerable<Specialization> services = await query.ToListAsync();
 
             return services;
+        }
+
+        async Task<Category> ICategoryDBService.Get(Guid id)
+        {
+            var service = await _dbContext.Categories.FirstOrDefaultAsync(d => d.Id == id);
+
+            if (service == null)
+            {
+                throw new ServicesException("Category not found", 404);
+            }
+
+            return service;
+        }
+
+        public async Task<IEnumerable<Category>> Get(int page, int pageSize)
+        {
+            IQueryable<Category> query = _dbContext.Categories;
+
+            query = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            IEnumerable<Category> categories = await query.AsNoTracking().ToListAsync();
+
+            return categories;
+        }
+
+        public async Task<Category> Add(Category category)
+        {
+            category.Id = Guid.NewGuid();
+
+            _dbContext.Categories.Add(category);
+
+            await _dbContext.SaveChangesAsync();
+
+            return category;
+        }
+
+        public async Task<Category> Update(Category category)
+        {
+            var toEdit = await _dbContext.Categories.FirstOrDefaultAsync(o => o.Id == category.Id);
+
+            if (toEdit == null)
+            {
+                throw new ServicesException("Category not found", 404);
+            }
+
+            _dbContext.Entry(toEdit).CurrentValues.SetValues(category);
+
+            await _dbContext.SaveChangesAsync();
+
+            return toEdit;
+        }
+
+        async Task<Category> ICategoryDBService.Delete(Guid id)
+        {
+            var service = await _dbContext.Categories.FirstOrDefaultAsync(o => o.Id == id);
+
+            if (service == null)
+            {
+                throw new ServicesException("Category not found", 404);
+            }
+
+            _dbContext.Categories.Remove(service);
+
+            await _dbContext.SaveChangesAsync();
+
+            return service;
         }
     }
 }

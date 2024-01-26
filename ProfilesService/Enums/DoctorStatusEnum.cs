@@ -1,4 +1,4 @@
-﻿namespace ProfilesService.Models
+﻿namespace ProfilesService.enums
 {
     public enum DoctorStatusEnum
     {

@@ -1,13 +1,7 @@
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using ProfilesService.Consumers;
-using ProfilesService.Data;
-using ProfilesService.Models.MapperProfiles;
-using ProfilesService.Services;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -21,12 +15,13 @@ var rmHost = Environment.GetEnvironmentVariable("RabbitMq:Host") ?? builder.Conf
 var rmUsername = Environment.GetEnvironmentVariable("RabbitMq:Username") ?? builder.Configuration.GetValue("RabbitMq:Username", "rmuser");
 var rmPassword = Environment.GetEnvironmentVariable("RabbitMq:Password") ?? builder.Configuration.GetValue("RabbitMq:Password", "rmpassword");
 
-// Add services to the container.
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .WriteTo.Console()
     .CreateLogger();
+
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCors(options =>
 {
@@ -38,17 +33,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<ProfilesDbContext>(
-    b => b.UseSqlServer(connectionString));
+//builder.Services.AddNpgsql<ServicesDbContext>(connectionString);
 
+//builder.Services.AddAutoMapper(typeof(ControllerProfile));
 
-builder.Services.AddAutoMapper(typeof(ProfilesProfile));
-
-builder.Services.AddScoped<DbService>();
+//builder.Services.AddScoped<IServiceDBService, DbService>();
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumersFromNamespaceContaining<OfficeUpdateConsumer>();
+    //x.AddConsumersFromNamespaceContaining<SpecializationRequestConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -67,8 +60,8 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Innoclinic profiles service API",
-        Description = "An ASP.NET Core Web API for managing profiles",
+        Title = "Innoclinic appointments service API",
+        Description = "An ASP.NET Core Web API for managing appointments",
     });
 
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -81,9 +74,7 @@ builder.Services.AddSwaggerGen(options =>
                 AuthorizationUrl = new Uri($"{authorityStringOuter}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
                 Scopes = new Dictionary<string, string> {
-                    { "doctors.edit", "Edit doctors" },
-                    { "patients.edit", "Edit patients" },
-                    { "receptionists.edit", "Edit receptionists" }
+                    { "appointments.edit", "Edit appointments" }
                 }
             }
         },
@@ -91,7 +82,7 @@ builder.Services.AddSwaggerGen(options =>
         In = ParameterLocation.Header,
     });
 
-options.OperationFilter<SecurityRequirementsOperationFilter>();
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
 builder.Services.AddAuthentication(options =>
@@ -125,40 +116,24 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("doctors.edit", policy =>
-        policy.RequireClaim("scope", "doctors.edit"));
-
-    options.AddPolicy("patients.edit", policy =>
-        policy.RequireClaim("scope", "patients.edit"));
-
-    options.AddPolicy("receptionists.edit", policy =>
-        policy.RequireClaim("scope", "receptionists.edit"));
+    //options.AddPolicy("appointments.edit", policy =>
+    //    policy.RequireClaim("scope", "appointments.edit"));
 });
 
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.UseCors("AllowCors");
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(setup =>
-    {
-        setup.SwaggerEndpoint($"/swagger/v1/swagger.json", "Version 1.0");
-        setup.OAuthClientId("profilesService");
-        setup.OAuthAppName("Profiles Service");
-        //setup.OAuthScopeSeparator(" ");
-        setup.OAuthUsePkce();
-    });
+    app.UseSwaggerUI();
 }
 
-app.UseAuthentication();
+app.UseHttpsRedirection();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
-
-Log.CloseAndFlush();

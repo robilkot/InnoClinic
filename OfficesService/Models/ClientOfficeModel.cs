@@ -8,7 +8,6 @@ namespace OfficesService.Models
         public Guid? Id { get; set; }
 
         [Required]
-        // todo:  implement validator
         public string Adress { get; set; }
 
         [Required]
@@ -17,6 +16,7 @@ namespace OfficesService.Models
 
         [Required]
         public bool Active { get; set; }
-        public DbImageModel? Image { get; set; }
+        public Guid? ImageId { get; set; }
+        public byte[]? Image { get; set; }
     }
 }

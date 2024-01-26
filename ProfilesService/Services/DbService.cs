@@ -1,42 +1,55 @@
-﻿using ProfilesService.Data;
-using ProfilesService.Models;
-using ProfilesService.Exceptions;
+﻿using CommonData.Messages;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using ProfilesService.Data;
+using ProfilesService.Data.Models;
+using ProfilesService.enums;
+using ProfilesService.Exceptions;
+using Serilog;
 
 namespace ProfilesService.Services
 {
     public class DbService
     {
         private readonly ProfilesDbContext _dbContext;
-        public DbService(ProfilesDbContext dbContext)
+        readonly IRequestClient<OfficeRequest> _officeRequestClient;
+        readonly IRequestClient<SpecializationRequest> _specRequestClient;
+        public DbService(ProfilesDbContext dbContext, IRequestClient<OfficeRequest> officeRequestClient, IRequestClient<SpecializationRequest> specRequestClient)
         {
             _dbContext = dbContext;
+            _officeRequestClient = officeRequestClient;
+            _specRequestClient = specRequestClient;
         }
 
-        public async Task<IEnumerable<DbDoctorModel>> GetDoctors(int pageNumber, int pageSize, IEnumerable<Guid>? specializations, IEnumerable<Guid>? offices, IEnumerable<DoctorStatusEnum>? status, string? doctorName)
+        public async Task<IEnumerable<DbDoctorModel>> GetDoctors(int pageNumber, int pageSize,
+            IEnumerable<Guid>? specializations, IEnumerable<Guid>? offices, IEnumerable<DoctorStatusEnum>? status, string? doctorName)
         {
             IQueryable<DbDoctorModel> query = _dbContext.Doctors;
 
-            if(specializations != null)
+            if (specializations != null && specializations.Any())
             {
                 query = query.Where(d => specializations.Contains(d.SpecializationId));
             }
-            if(offices != null)
+            if (offices != null && offices.Any())
             {
                 query = query.Where(d => offices.Contains(d.OfficeId));
             }
-            if (status != null)
+            if (status != null && status.Any())
             {
                 query = query.Where(d => status.Contains(d.Status));
             }
-            if (doctorName != null)
+            if (!doctorName.IsNullOrEmpty())
             {
                 query = query.Where(d => d.FirstName + ' ' + d.MiddleName + ' ' + d.LastName == doctorName); // todo: this is bs check
             }
 
-            query = query
+            if (pageNumber != 0)
+            {
+                query = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
+            }
 
             IEnumerable<DbDoctorModel> doctors = await query.AsNoTracking().ToListAsync();
 
@@ -59,6 +72,36 @@ namespace ProfilesService.Services
         public async Task<DbDoctorModel> AddDoctor(DbDoctorModel doctor)
         {
             doctor.Id = Guid.NewGuid();
+
+            try
+            {
+                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                {
+                    Id = doctor.OfficeId
+                });
+
+                doctor.OfficeAddress = result.Message.Adress;
+            }
+            catch (RequestTimeoutException)
+            {
+                Log.Error("Request timeout updating doctor's office address");
+                doctor.OfficeAddress = "Address not specified";
+            }
+
+            try
+            {
+                var result = await _specRequestClient.GetResponse<SpecializationUpdate>(new SpecializationRequest()
+                {
+                    Id = doctor.SpecializationId
+                });
+
+                doctor.SpecializationName = result.Message.Name;
+            }
+            catch (RequestTimeoutException)
+            {
+                Log.Error("Request timeout updating doctor's specialization name");
+                doctor.OfficeAddress = "Specialization not specified";
+            }
 
             _dbContext.Doctors.Add(doctor);
 
@@ -92,6 +135,36 @@ namespace ProfilesService.Services
                 throw new ProfilesException("Doctor not found", 404);
             }
 
+            try
+            {
+                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                {
+                    Id = doctor.OfficeId
+                });
+
+                doctor.OfficeAddress = result.Message.Adress;
+            }
+            catch (RequestTimeoutException)
+            {
+                Log.Error("Request timeout updating doctor's office address");
+                doctor.OfficeAddress = "Address not specified";
+            }
+
+            try
+            {
+                var result = await _specRequestClient.GetResponse<SpecializationUpdate>(new SpecializationRequest()
+                {
+                    Id = doctor.SpecializationId
+                });
+
+                doctor.SpecializationName = result.Message.Name;
+            }
+            catch (RequestTimeoutException)
+            {
+                Log.Error("Request timeout updating doctor's specialization name");
+                doctor.OfficeAddress = "Specialization not specified";
+            }
+
             _dbContext.Entry(toEdit).CurrentValues.SetValues(doctor);
 
             await _dbContext.SaveChangesAsync();
@@ -109,9 +182,12 @@ namespace ProfilesService.Services
                 query = query.Where(d => d.FirstName + ' ' + d.MiddleName + ' ' + d.LastName == name); // todo: this is bs check
             }
 
-            query = query
+            if (pageNumber != 0)
+            {
+                query = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
+            }
 
             IEnumerable<DbPatientModel> patients = await query.AsNoTracking().ToListAsync();
 
@@ -184,9 +260,12 @@ namespace ProfilesService.Services
                 query = query.Where(d => d.FirstName + ' ' + d.MiddleName + ' ' + d.LastName == name); // todo: this is bs check
             }
 
-            query = query
+            if (pageNumber != 0)
+            {
+                query = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
+            }
 
             IEnumerable<DbReceptionistModel> patients = await query.AsNoTracking().ToListAsync();
 
@@ -209,6 +288,21 @@ namespace ProfilesService.Services
         public async Task<DbReceptionistModel> AddReceptionist(DbReceptionistModel receptionist)
         {
             receptionist.Id = Guid.NewGuid();
+
+            try
+            {
+                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                {
+                    Id = receptionist.OfficeId
+                });
+
+                receptionist.OfficeAddress = result.Message.Adress;
+            }
+            catch (RequestTimeoutException)
+            {
+                Log.Error("Request timeout updating receptionist's office address");
+                receptionist.OfficeAddress = "Address not specified";
+            }
 
             _dbContext.Receptionists.Add(receptionist);
 
@@ -240,6 +334,21 @@ namespace ProfilesService.Services
             if (toEdit == null)
             {
                 throw new ProfilesException("Receptionist not found", 404);
+            }
+
+            try
+            {
+                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                {
+                    Id = receptionist.OfficeId
+                });
+
+                receptionist.OfficeAddress = result.Message.Adress;
+            }
+            catch (RequestTimeoutException)
+            {
+                Log.Error("Request timeout updating receptionist's office address");
+                receptionist.OfficeAddress = "Address not specified";
             }
 
             _dbContext.Entry(toEdit).CurrentValues.SetValues(receptionist);

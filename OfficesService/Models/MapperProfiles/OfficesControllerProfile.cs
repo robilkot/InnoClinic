@@ -1,6 +1,7 @@
 ﻿using static System.Runtime.InteropServices.JavaScript.JSType;
 using AutoMapper;
 using OfficesService.Data.Models;
+using CommonData.Messages;
 
 namespace OfficesService.Models.MapperProfiles
 {
@@ -8,8 +9,8 @@ namespace OfficesService.Models.MapperProfiles
     {
         public OfficesControllerProfile()
         {
-            CreateMap<ClientImageModel, DbImageModel>().ReverseMap();
             CreateMap<ClientOfficeModel, DbOfficeModel>().ReverseMap();
+            CreateMap<OfficeUpdate, DbOfficeModel>().ReverseMap();
         }
     }
 }

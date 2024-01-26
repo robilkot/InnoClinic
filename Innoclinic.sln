@@ -15,13 +15,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OfficesServiceTest", "Offic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityServer", "IdentityServer\IdentityServer.csproj", "{1065B81C-AA96-4B1F-8F8F-E3D5C01D4D59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonData", "CommonData\CommonData.csproj", "{14578636-2238-4901-BCAE-82FFE966989C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonData", "CommonData\CommonData.csproj", "{14578636-2238-4901-BCAE-82FFE966989C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D449AFB5-3CF9-41BE-99BE-A59ED136E01C}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
 		OfficesService.Dockerfile = OfficesService.Dockerfile
 		ProfilesService.Dockerfile = ProfilesService.Dockerfile
+		ServicesService.Dockerfile = ServicesService.Dockerfile
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppointmentsService", "AppointmentsService\AppointmentsService.csproj", "{672C0AF1-9388-4B85-A10A-3FF6DB7D0B49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +61,10 @@ Global
 		{14578636-2238-4901-BCAE-82FFE966989C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14578636-2238-4901-BCAE-82FFE966989C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14578636-2238-4901-BCAE-82FFE966989C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{672C0AF1-9388-4B85-A10A-3FF6DB7D0B49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{672C0AF1-9388-4B85-A10A-3FF6DB7D0B49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{672C0AF1-9388-4B85-A10A-3FF6DB7D0B49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{672C0AF1-9388-4B85-A10A-3FF6DB7D0B49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

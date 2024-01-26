@@ -1,9 +1,11 @@
 using FluentValidation;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using ServicesService.Consumers;
 using ServicesService.Domain.Entities;
 using ServicesService.Domain.Interfaces;
 using ServicesService.Infrastructure.Data;
@@ -19,7 +21,10 @@ var authorityString = Environment.GetEnvironmentVariable("IdentityPath") ?? buil
 var authorityStringOuter = Environment.GetEnvironmentVariable("IdentityPathOuter") ?? builder.Configuration["IdentityPathOuter"];
 var connectionString = Environment.GetEnvironmentVariable("DbConnection") ?? builder.Configuration.GetConnectionString("DbConnection");
 
-// Add services to the container.
+var rmHost = Environment.GetEnvironmentVariable("RabbitMq:Host") ?? builder.Configuration["RabbitMq:Host"];
+var rmUsername = Environment.GetEnvironmentVariable("RabbitMq:Username") ?? builder.Configuration.GetValue("RabbitMq:Username", "rmuser");
+var rmPassword = Environment.GetEnvironmentVariable("RabbitMq:Password") ?? builder.Configuration.GetValue("RabbitMq:Password", "rmpassword");
+
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -45,8 +50,26 @@ builder.Services.AddAutoMapper(typeof(ControllerProfile));
 
 builder.Services.AddScoped<IServiceDBService, DbService>();
 builder.Services.AddScoped<ISpecializationDBService, DbService>();
+builder.Services.AddScoped<ICategoryDBService, DbService>();
 builder.Services.AddScoped<IValidator<ClientServiceModel>, ServiceModelValidator>();
 builder.Services.AddScoped<IValidator<ClientSpecializationModel>, SpecializationModelValidator>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumersFromNamespaceContaining<SpecializationRequestConsumer>();
+    x.AddConsumersFromNamespaceContaining<ServiceRequestConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(rmHost, "/", host =>
+        {
+            host.Username(rmUsername);
+            host.Password(rmPassword);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddSwaggerGen(options =>
 {

@@ -1,11 +1,13 @@
 using AutoMapper;
+using CommonData.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfilesService.Data.Models;
+using ProfilesService.enums;
 using ProfilesService.Exceptions;
 using ProfilesService.Models;
 using ProfilesService.Services;
 using Serilog;
-using System.Numerics;
 
 namespace ProfilesService.Controllers
 {
@@ -24,14 +26,14 @@ namespace ProfilesService.Controllers
         // Enumerable params to sort doctors by different fields
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDoctorModel>>> GetDoctors([FromQuery] int pageNumber, [FromQuery] int pageSize,
-            [FromQuery] IEnumerable<Guid>? specializations, [FromQuery] IEnumerable<Guid>? offices,[FromQuery] string? doctorName, IEnumerable<DoctorStatusEnum>? status)
+            [FromQuery] IEnumerable<Guid>? specializations, [FromQuery] IEnumerable<Guid>? offices, [FromQuery] string? doctorName, [FromQuery] IEnumerable<DoctorStatusEnum>? status)
         {
             IEnumerable<ClientDoctorModel> clientDoctors;
 
-            if(User.IsInRole("receptionist"))
+            if (User.IsInRole(Roles.Receptionist))
             {
                 var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, status, doctorName);
-                
+
                 clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
             }
             else
@@ -59,7 +61,7 @@ namespace ProfilesService.Controllers
 
             var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
 
-            if (!User.IsInRole("receptionist") && !CurrentUserIsDoctor(dbDoctor.AccountId))
+            if (!User.IsInRole(Roles.Receptionist) && !CurrentUserIsDoctor(dbDoctor.AccountId))
             {
                 clientDoctor.DateOfBirth = null;
                 clientDoctor.Email = null;
@@ -76,7 +78,7 @@ namespace ProfilesService.Controllers
         {
             var dbDoctor = await _dbService.DeleteDoctor(id);
 
-            Log.Information("Doctor deleted => {@dbDoctor}", dbDoctor);
+            Log.Information("Doctor deleted => {@record}", (dbDoctor.Id, dbDoctor.LastName, dbDoctor.OfficeAddress));
 
             var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
 
@@ -91,7 +93,7 @@ namespace ProfilesService.Controllers
 
             var addedDoctor = await _dbService.AddDoctor(dbDoctor);
 
-            Log.Information("Doctor created => {@addedDoctor}", addedDoctor);
+            Log.Information("Doctor created => {@record}", (addedDoctor.Id, addedDoctor.LastName, addedDoctor.OfficeAddress));
 
             var clientDoctor = _mapper.Map<ClientDoctorModel>(addedDoctor);
 
@@ -103,11 +105,11 @@ namespace ProfilesService.Controllers
         {
             var dbDoctor = _mapper.Map<DbDoctorModel>(doctor);
 
-            if (User.IsInRole("receptionist") || CurrentUserIsDoctor(dbDoctor.AccountId))
+            if (User.IsInRole(Roles.Receptionist) || CurrentUserIsDoctor(dbDoctor.AccountId))
             {
                 var updatedDoctor = await _dbService.UpdateDoctor(dbDoctor);
 
-                Log.Information("Doctor updated => {@updatedDoctor}", updatedDoctor);
+                Log.Information("Doctor updated => {@record}", (updatedDoctor.Id, updatedDoctor.LastName, updatedDoctor.OfficeAddress));
 
                 var clientDoctor = _mapper.Map<ClientDoctorModel>(updatedDoctor);
 
@@ -121,7 +123,7 @@ namespace ProfilesService.Controllers
 
         private bool CurrentUserIsDoctor(Guid doctorAccountId)
         {
-            return User.IsInRole("doctor") && doctorAccountId.ToString() == User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value;
+            return User.IsInRole(Roles.Doctor) && doctorAccountId.ToString() == User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value;
         }
     }
 }

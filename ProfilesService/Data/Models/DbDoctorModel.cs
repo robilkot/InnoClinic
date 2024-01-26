@@ -1,4 +1,6 @@
-﻿namespace ProfilesService.Models
+﻿using ProfilesService.enums;
+
+namespace ProfilesService.Data.Models
 {
     public class DbDoctorModel
     {

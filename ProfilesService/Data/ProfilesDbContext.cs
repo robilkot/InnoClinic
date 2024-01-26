@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProfilesService.Models;
+using ProfilesService.Data.Models;
 
 namespace ProfilesService.Data
 {

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using ProfilesService.enums;
 
 namespace ProfilesService.Models
 {
@@ -16,11 +17,11 @@ namespace ProfilesService.Models
         public Guid? AccountId { get; set; }
         public Guid SpecializationId { get; set; }
         // specname is redundant
-        public string SpecializationName { get; set; }
+        public string? SpecializationName { get; set; }
         public Guid OfficeId { get; set; }
         // address is redundant
-        public string OfficeAddress { get; set; }
-        public DateTime CareerStart { get; set; }
+        public string? OfficeAddress { get; set; }
+        public DateTime? CareerStart { get; set; }
         public DoctorStatusEnum? Status { get; set; }
     }
 }
