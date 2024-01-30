@@ -25,10 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Commands\" />
-    <Folder Include="Handlers\" />
-    <Folder Include="Queries\" />
+    <ProjectReference Include="..\CommonData\InnoClinicCommonData.csproj" />
   </ItemGroup>
 
 </Project>

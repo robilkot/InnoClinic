@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CommonData\CommonData.csproj" />
+    <ProjectReference Include="..\CommonData\InnoClinicCommonData.csproj" />
   </ItemGroup>
 
 </Project>

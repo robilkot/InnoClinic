@@ -1,3 +1,6 @@
+using AppointmentsService.Data;
+using AppointmentsService.Models.MapperProfiles;
+using AppointmentsService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -15,6 +18,7 @@ var rmHost = Environment.GetEnvironmentVariable("RabbitMq:Host") ?? builder.Conf
 var rmUsername = Environment.GetEnvironmentVariable("RabbitMq:Username") ?? builder.Configuration.GetValue("RabbitMq:Username", "rmuser");
 var rmPassword = Environment.GetEnvironmentVariable("RabbitMq:Password") ?? builder.Configuration.GetValue("RabbitMq:Password", "rmpassword");
 
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -33,11 +37,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-//builder.Services.AddNpgsql<ServicesDbContext>(connectionString);
+builder.Services.AddNpgsql<AppointmentsDbContext>(connectionString);
 
-//builder.Services.AddAutoMapper(typeof(ControllerProfile));
+builder.Services.AddAutoMapper(typeof(AppointmentsControllerProfile));
 
-//builder.Services.AddScoped<IServiceDBService, DbService>();
+builder.Services.AddScoped<DbService>();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -116,8 +120,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    //options.AddPolicy("appointments.edit", policy =>
-    //    policy.RequireClaim("scope", "appointments.edit"));
+    options.AddPolicy("appointments.edit", policy =>
+        policy.RequireClaim("scope", "appointments.edit"));
 });
 
 builder.Services.AddControllers();
@@ -129,8 +133,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
