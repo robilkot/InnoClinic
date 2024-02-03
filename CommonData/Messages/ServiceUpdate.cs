@@ -5,6 +5,8 @@
         public Guid Id { get; set; }
         public required string Name { get; set; }
         public Guid CategoryId { get; set; }
+        // slot size is redundant
+        public int TimeSlotSize { get; set; }
         public required string CategoryName { get; set; }
         public decimal Price { get; set; }
         public Guid SpecializationId { get; set; }

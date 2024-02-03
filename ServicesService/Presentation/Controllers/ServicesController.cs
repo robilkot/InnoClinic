@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ServicesService.Domain.Entities;
-using ServicesService.Domain.Exceptions;
 using ServicesService.Domain.Interfaces;
-using ServicesService.Infrastructure.Services;
 using ServicesService.Presentation.Models;
 
 namespace ServicesService.Presentation.Controllers
@@ -66,8 +64,8 @@ namespace ServicesService.Presentation.Controllers
         public async Task<ActionResult<ClientServiceModel>> CreateService([FromBody] ClientServiceModel service)
         {
             var result = await _validator.ValidateAsync(service);
-                
-            if(!result.IsValid)
+
+            if (!result.IsValid)
             {
                 result.AddToModelState(ModelState);
 

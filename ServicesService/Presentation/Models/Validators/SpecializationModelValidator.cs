@@ -8,16 +8,19 @@ namespace ServicesService.Presentation.Models.Validators
         public SpecializationModelValidator()
         {
             RuleFor(s => s.Name)
-                .NotNull()
-                .Length(2,256)
-                .WithMessage("Length of name must be 2 to 256 symbols")
-                .Must((s) =>
+                .Must(str =>
                 {
-                    return !s.Contains(';') && !s.Contains('.');
+                    if (str != null)
+                    {
+                        return str.Length >= 2 && str.Length <= 255 && !str.Contains(',');
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 })
-                .WithMessage("Name must not contain semicolons or dots");
+                .WithMessage("Name must not contain commas and must be 2 to 255 symbols long");
 
-            RuleFor(s => s.IsActive).NotNull();
         }
     }
 }

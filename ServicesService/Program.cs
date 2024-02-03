@@ -90,7 +90,6 @@ builder.Services.AddSwaggerGen(options =>
                 TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
                 Scopes = new Dictionary<string, string> {
                     { "services.edit", "Edit services" },
-                    { "specializations.edit", "Edit specializations" }
                 }
             }
         },
@@ -134,9 +133,6 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("services.edit", policy =>
         policy.RequireClaim("scope", "services.edit"));
-
-    options.AddPolicy("specializations.edit", policy =>
-        policy.RequireClaim("scope", "specializations.edit"));
 });
 
 builder.Services.AddControllers();

@@ -1,14 +1,9 @@
 ﻿using AutoMapper;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ServicesService.Domain.Entities;
-using ServicesService.Domain.Exceptions;
 using ServicesService.Domain.Interfaces;
-using ServicesService.Infrastructure.Services;
-using ServicesService.Presentation.Models;
 
 namespace ServicesService.Presentation.Controllers
 {
@@ -52,7 +47,7 @@ namespace ServicesService.Presentation.Controllers
         {
             var dbService = await _dbService.Delete(id);
 
-            Log.Information("Category deleted => {@dbService}", dbService);
+            Log.Information("Category deleted => {@dbService}", dbService.Name);
 
             var clientService = _mapper.Map<ClientCategoryModel>(dbService);
 
@@ -67,7 +62,7 @@ namespace ServicesService.Presentation.Controllers
 
             var addedService = await _dbService.Add(dbPatient);
 
-            Log.Information("Category created => {@addedService}", addedService);
+            Log.Information("Category created => {@addedService}", addedService.Name);
 
             var clientService = _mapper.Map<ClientCategoryModel>(addedService);
 
@@ -82,7 +77,7 @@ namespace ServicesService.Presentation.Controllers
 
             var updatedService = await _dbService.Update(dbPatient);
 
-            Log.Information("Category updated => {@updatedService}", updatedService);
+            Log.Information("Category updated => {@updatedService}", updatedService.Name);
 
             var clientService = _mapper.Map<ClientCategoryModel>(updatedService);
 

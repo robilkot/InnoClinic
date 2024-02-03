@@ -8,6 +8,6 @@ namespace ServicesService.Domain.Interfaces
         Task<IEnumerable<Specialization>> Get(int page, int pageSize);
         Task<Specialization> Add(Specialization service);
         Task<Specialization> Update(Specialization service);
-        Task<Specialization> Delete(Guid id);
+        Task Delete(Guid id);
     }
 }

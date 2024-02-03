@@ -16,6 +16,7 @@
         public Guid ServiceId { get; set; }
         // ServiceName is redundant
         public string? ServiceName { get; set; }
+        public int? TimeSlotSize { get; set; }
         public Guid OfficeId { get; set; }
         public string? OfficeAddress { get; set; }
         public DateTime Date { get; set; }

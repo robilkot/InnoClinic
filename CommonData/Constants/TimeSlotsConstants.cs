@@ -1,6 +1,6 @@
 ﻿namespace InnoClinicCommonData.Constants
 {
-    public class TimeSlotsConstants
+    public static class TimeSlotsConstants
     {
         public static readonly List<(int, int)?> WorkingHours = new(){
         null,
@@ -11,5 +11,7 @@
         (8,18),
         null,
         };
+
+        public const int DefaultTimeSlotSize = 2;
     }
 }

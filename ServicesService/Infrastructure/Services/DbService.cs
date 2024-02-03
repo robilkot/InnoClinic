@@ -1,5 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using CommonData.Messages;
+using InnoClinicCommonData.Constants;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
+using Serilog;
 using ServicesService.Domain.Entities;
 using ServicesService.Domain.Exceptions;
 using ServicesService.Domain.Interfaces;
@@ -9,15 +14,48 @@ namespace ServicesService.Infrastructure.Services
     public class DbService : IServiceDBService, ISpecializationDBService, ICategoryDBService
     {
         private readonly IMongoDatabase _dbContext;
+        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMapper _mapper;
 
-        public DbService(IMongoDatabase dbContext)
+        public DbService(IMongoDatabase dbContext, IPublishEndpoint publishEndpoint, IMapper mapper)
         {
             _dbContext = dbContext;
+            _publishEndpoint = publishEndpoint;
+            _mapper = mapper;
         }
 
         public async Task<Service> Add(Service service)
         {
             service.Id = Guid.NewGuid();
+
+            var categoriesCollection = _dbContext.GetCollection<Category>("Categories");
+
+            if (service.CategoryId == null)
+            {
+                service.TimeSlotSize = TimeSlotsConstants.DefaultTimeSlotSize;
+            }
+            else
+            {
+                var serviceCategory = await categoriesCollection.Find(c => c.Id == service.CategoryId).FirstOrDefaultAsync();
+
+                if (serviceCategory == null)
+                {
+                    throw new ServicesException("Can't find specified service category", 404);
+                }
+                else
+                {
+                    service.TimeSlotSize = serviceCategory.TimeSlotSize;
+                }
+            }
+
+            var specializationsCollection = _dbContext.GetCollection<Specialization>("Specializations");
+
+            var serviceSpec = await specializationsCollection.Find(c => c.Id == service.SpecializationId).FirstOrDefaultAsync();
+
+            if (serviceSpec == null)
+            {
+                throw new ServicesException("Can't find specified service specialization", 404);
+            }
 
             var servicesCollection = _dbContext.GetCollection<Service>("Services");
 
@@ -26,7 +64,7 @@ namespace ServicesService.Infrastructure.Services
             return service;
         }
 
-        public async Task<Service> Delete(Guid id)
+        public async Task Delete(Guid id)
         {
             var servicesCollection = _dbContext.GetCollection<Service>("Services");
 
@@ -39,7 +77,7 @@ namespace ServicesService.Infrastructure.Services
 
             await servicesCollection.DeleteOneAsync(s => s.Id == id);
 
-            return service;
+            return;
         }
 
         public async Task<Service> Get(Guid id)
@@ -65,7 +103,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (categories != null && categories.Any())
             {
-                filter &= filterBuilder.In(s => s.CategoryId, categories);
+                filter &= filterBuilder.In("CategoryId", categories);
             }
 
             FindOptions<Service> options = new FindOptions<Service>();
@@ -89,7 +127,16 @@ namespace ServicesService.Infrastructure.Services
                 throw new ServicesException("Service not found", 404);
             }
 
+            // Do not change timeslotsize to new value
+            service.TimeSlotSize = toEdit.TimeSlotSize;
+
             await servicesCollection.ReplaceOneAsync(s => s.Id == service.Id, service);
+
+            Log.Debug("Publishing message to update changed service");
+
+            var msg = _mapper.Map<ServiceUpdate>(service);
+
+            await _publishEndpoint.Publish(msg);
 
             return toEdit;
         }
@@ -122,7 +169,7 @@ namespace ServicesService.Infrastructure.Services
             return toEdit;
         }
 
-        async Task<Specialization> ISpecializationDBService.Delete(Guid id)
+        async Task ISpecializationDBService.Delete(Guid id)
         {
             var specCollection = _dbContext.GetCollection<Specialization>("Specializations");
 
@@ -135,7 +182,14 @@ namespace ServicesService.Infrastructure.Services
 
             await specCollection.DeleteOneAsync(s => s.Id == id);
 
-            return spec;
+
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            UpdateDefinition<Service> updateDefinition = Builders<Service>.Update.Set(x => x.SpecializationId, null);
+
+            var servicesToUpdate = await servicesCollection.UpdateManyAsync(x => x.SpecializationId == spec.Id, updateDefinition);
+
+            return;
         }
 
         async Task<Specialization> ISpecializationDBService.Get(Guid id)
@@ -207,21 +261,39 @@ namespace ServicesService.Infrastructure.Services
 
         public async Task<Category> Update(Category category)
         {
-            var specCollection = _dbContext.GetCollection<Category>("Categories");
+            var categoriesCollection = _dbContext.GetCollection<Category>("Categories");
 
-            var toEdit = await specCollection.Find(s => s.Id == category.Id).FirstOrDefaultAsync();
+            var toEdit = await categoriesCollection.Find(s => s.Id == category.Id).FirstOrDefaultAsync();
 
             if (toEdit == null)
             {
                 throw new ServicesException("Category not found", 404);
             }
 
-            await specCollection.ReplaceOneAsync(s => s.Id == category.Id, category);
+            await categoriesCollection.ReplaceOneAsync(s => s.Id == category.Id, category);
 
-            return toEdit;
+
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            UpdateDefinition<Service> updateDefinition = Builders<Service>.Update.Set("TimeSlotSize", category.TimeSlotSize);
+
+            var updatedServices = await servicesCollection.UpdateManyAsync(x => x.CategoryId == category.Id, updateDefinition);
+
+            var servicesToSynchronize = await servicesCollection.Find(x => x.CategoryId == category.Id).ToListAsync();
+
+            Log.Debug("Publishing messages to update changed services");
+
+            foreach (var svc in servicesToSynchronize)
+            {
+                var msg = _mapper.Map<ServiceUpdate>(svc);
+
+                await _publishEndpoint.Publish(msg);
+            }
+
+            return category;
         }
 
-        async Task<Category> ICategoryDBService.Delete(Guid id)
+        async Task ICategoryDBService.Delete(Guid id)
         {
             var categoryCollection = _dbContext.GetCollection<Category>("Categories");
 
@@ -234,7 +306,13 @@ namespace ServicesService.Infrastructure.Services
 
             await categoryCollection.DeleteOneAsync(s => s.Id == id);
 
-            return category;
+            var servicesCollection = _dbContext.GetCollection<Service>("Services");
+
+            UpdateDefinition<Service> updateDefinition = Builders<Service>.Update.Set(x => x.CategoryId, null);
+
+            var servicesToUpdate = await servicesCollection.UpdateManyAsync(x => x.CategoryId == category.Id, updateDefinition);
+
+            return;
         }
     }
 }

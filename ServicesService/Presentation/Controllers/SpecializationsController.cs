@@ -44,12 +44,12 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        [Authorize("specializations.edit")]
+        [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> DeleteSpecialization(Guid id)
         {
             var dbSpec = await _dbService.Delete(id);
 
-            Log.Information("Specialization deleted => {@dbSpec}", dbSpec);
+            Log.Information("Specialization deleted => {@dbSpec}", dbSpec.Name);
 
             var clientSpec = _mapper.Map<ClientSpecializationModel>(dbSpec);
 
@@ -57,7 +57,7 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpPost]
-        [Authorize("specializations.edit")]
+        [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> CreateService([FromBody] ClientSpecializationModel spec)
         {
             var result = await _validator.ValidateAsync(spec);
@@ -73,7 +73,7 @@ namespace ServicesService.Presentation.Controllers
 
             var addedSpec = await _dbService.Add(dbSpec);
 
-            Log.Information("Specialization created => {@addedSpec}", addedSpec);
+            Log.Information("Specialization created => {@addedSpec}", addedSpec.Name);
 
             var clientSpec = _mapper.Map<ClientSpecializationModel>(addedSpec);
 
@@ -81,7 +81,7 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpPut]
-        [Authorize("specializations.edit")]
+        [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> UpdateService([FromBody] ClientSpecializationModel spec)
         {
             var result = await _validator.ValidateAsync(spec);
@@ -97,7 +97,7 @@ namespace ServicesService.Presentation.Controllers
 
             var updatedSpec = await _dbService.Update(dbSpec);
 
-            Log.Information("Specialization updated => {@updatedSpec}", updatedSpec);
+            Log.Information("Specialization updated => {@updatedSpec}", updatedSpec.Name);
 
             var clientSpec = _mapper.Map<ClientSpecializationModel>(updatedSpec);
 
