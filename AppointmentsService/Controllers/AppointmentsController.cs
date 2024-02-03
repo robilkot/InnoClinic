@@ -60,7 +60,7 @@ namespace AppointmentsService.Controllers
                 PatientId = patientId
             };
 
-            IEnumerable<DbAppointment> appointments = await _mediator.Send(query);
+            var appointments = await _mediator.Send(query);
 
             var clientAppointments = _mapper.Map<IEnumerable<ClientAppointment>>(appointments);
 
@@ -89,15 +89,16 @@ namespace AppointmentsService.Controllers
 
         [HttpPost]
         //[Authorize("appointments.edit")]
-        public async Task<ActionResult<ClientAppointment>> AddAppointment([FromBody] ClientAppointment appointment)
+        public async Task<ActionResult> AddAppointment([FromBody] ClientAppointment appointment)
         {
-            DbAppointment dbAppointment = _mapper.Map<DbAppointment>(appointment);
+            var dbAppointment = _mapper.Map<DbAppointment>(appointment);
 
+            // todo: how to return guid or object?
             await _mediator.Send(new AddAppointmentCommand() { Appointment = dbAppointment });
 
             Log.Information("Appointment created => {@record}", (dbAppointment.Id, dbAppointment.ServiceName, dbAppointment.OfficeAddress));
 
-            return new(appointment);
+            return Ok();
         }
 
         [HttpPut]
@@ -116,7 +117,7 @@ namespace AppointmentsService.Controllers
                 Appointment = dbAppointment
             };
 
-            DbAppointment updated = await _mediator.Send(command);
+            var updated = await _mediator.Send(command);
 
             var clientUpdated = _mapper.Map<ClientAppointment>(updated);
 

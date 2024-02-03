@@ -98,7 +98,7 @@ namespace AppointmentsService.Services
             return appointment;
         }
 
-        public async Task<DbAppointment> DeleteAppointment(Guid id)
+        public async Task DeleteAppointment(Guid id)
         {
             var appointment = await _dbContext.Appointments.FirstOrDefaultAsync(o => o.Id == id);
 
@@ -111,7 +111,7 @@ namespace AppointmentsService.Services
 
             await _dbContext.SaveChangesAsync();
 
-            return appointment;
+            return;
         }
 
         public async Task<DbAppointment> UpdateAppointment(DbAppointment appointment)
@@ -153,7 +153,7 @@ namespace AppointmentsService.Services
 
         private async Task SyncAppointmentRedundancy(DbAppointment appointment)
         {
-            var officeUpdateTask = new Task(async () =>
+            var officeUpdateTask = Task.Run(async () =>
             {
                 try
                 {
@@ -178,7 +178,7 @@ namespace AppointmentsService.Services
                 appointment.OfficeAddress = StringConstants.OfficeUnreacheable;
             });
 
-            var doctorUpdateTask = new Task(async () =>
+            var doctorUpdateTask = Task.Run(async () =>
             {
                 try
                 {
@@ -207,7 +207,7 @@ namespace AppointmentsService.Services
                 appointment.DoctorLastName = StringConstants.ProfileUnreacheable;
             });
 
-            var patientUpdateTask = new Task(async () =>
+            var patientUpdateTask = Task.Run(async () =>
             {
                 try
                 {
@@ -236,7 +236,7 @@ namespace AppointmentsService.Services
                 appointment.PatientLastName = StringConstants.ProfileUnreacheable;
             });
 
-            var serviceUpdateTask = new Task(async () =>
+            var serviceUpdateTask = Task.Run(async () =>
             {
                 try
                 {
