@@ -1,4 +1,7 @@
-﻿using Dapper;
+﻿using AutoMapper;
+using CommonData.Messages;
+using Dapper;
+using MassTransit;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OfficesService.Data.Models;
@@ -13,16 +16,20 @@ namespace OfficesService.Repository
     public class OfficeRepository : IRepository<DbOfficeModel>
     {
         private readonly IDbConnection _connection;
-        public OfficeRepository(IConfiguration configuration)
+        private readonly IMapper _mapper;
+        private readonly IPublishEndpoint _publishEndpoint;
+        public OfficeRepository(IConfiguration configuration, IMapper mapper, IPublishEndpoint publishEndpoint)
         {
             var connectionString = Environment.GetEnvironmentVariable("DbConnection") ?? configuration.GetConnectionString("DbConnection");
             _connection = new SqlConnection(connectionString);
+            _mapper = mapper;
+            _publishEndpoint = publishEndpoint;
         }
         public async Task<DbOfficeModel> Add(DbOfficeModel entity)
         {
             entity.Id = Guid.NewGuid();
 
-            var result = await _connection.ExecuteAsync("INSERT INTO Offices (Id, Adress, RegistryPhoneNumber, Active, ImageId) VALUES (@Id, @Adress, @RegistryPhoneNumber, @Active, @ImageId)", entity);
+            var result = await _connection.ExecuteAsync("INSERT INTO Offices (Id, Address, RegistryPhoneNumber, Active, ImageId) VALUES (@Id, @Address, @RegistryPhoneNumber, @Active, @ImageId)", entity);
 
             return result > 0 ? entity : throw new OfficesException("Couldn't add new office", 500);
         }
@@ -70,7 +77,7 @@ namespace OfficesService.Repository
             }
 
             var sql = @"UPDATE Offices
-					SET Adress = @Adress,
+					SET Address = @Address,
 						RegistryPhoneNumber = @RegistryPhoneNumber,
 						Active = @Active,
 						ImageId = @ImageId
@@ -78,7 +85,7 @@ namespace OfficesService.Repository
 
             var parameters = new
             {
-                Adress = entity.Adress,
+                Address = entity.Address,
                 RegistryPhoneNumber = entity.RegistryPhoneNumber,
                 Active = entity.Active,
                 ImageId = entity.ImageId,
@@ -90,6 +97,10 @@ namespace OfficesService.Repository
 
             // query edited office
             var editedOffice = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { entity.Id });
+
+            // publish message to other services
+            await _publishEndpoint.Publish(_mapper.Map<OfficeUpdate>(editedOffice));
+
             return editedOffice!;
         }
 

@@ -1,6 +1,6 @@
-﻿namespace ProfilesService.Data.Models
+﻿namespace CommonData.Messages
 {
-    public class DbPatientModel
+    public class PatientUpdate
     {
         public Guid Id { get; set; }
         public required string FirstName { get; set; }

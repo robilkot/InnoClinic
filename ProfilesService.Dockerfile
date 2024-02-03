@@ -6,7 +6,7 @@ EXPOSE 5002
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["ProfilesService/ProfilesService.csproj", "ProfilesService/"]
-COPY ["CommonData/CommonData.csproj", "CommonData/"]
+COPY ["CommonData/InnoClinicCommonData.csproj", "CommonData/"]
 RUN dotnet restore "ProfilesService/ProfilesService.csproj"
 COPY . .
 WORKDIR "/src/ProfilesService"

@@ -6,7 +6,7 @@ EXPOSE 5003
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["ServicesService/ServicesService.csproj", "ServicesService/"]
-COPY ["CommonData/CommonData.csproj", "CommonData/"]
+COPY ["CommonData/InnoClinicCommonData.csproj", "CommonData/"]
 RUN dotnet restore "ServicesService/ServicesService.csproj"
 COPY . .
 WORKDIR "/src/ServicesService"

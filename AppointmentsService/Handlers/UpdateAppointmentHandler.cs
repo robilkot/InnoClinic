@@ -1,6 +1,5 @@
 ﻿using AppointmentsService.Commands;
 using AppointmentsService.Data.Models;
-using AppointmentsService.Queries;
 using AppointmentsService.Services;
 using MediatR;
 

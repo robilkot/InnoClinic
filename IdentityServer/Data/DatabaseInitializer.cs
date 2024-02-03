@@ -16,39 +16,48 @@ namespace IdentityServer.Core.Data
 
             var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
 
-            //context.Database.Migrate();
-
             foreach (var client in Config.Clients)
             {
                 var item = context.Clients.SingleOrDefault(c => c.ClientId == client.ClientId);
 
-                if (item == null)
+                if (item != null)
                 {
-                    context.Clients.Add(client.ToEntity());
+                    context.Remove(item);
+                    context.SaveChanges();
                 }
+                context.Clients.Add(client.ToEntity());
+                
+                context.SaveChanges();
             }
 
             foreach (var resource in Config.ApiResources)
             {
                 var item = context.ApiResources.SingleOrDefault(c => c.Name == resource.Name);
 
-                if (item == null)
+                if (item != null)
                 {
-                    context.ApiResources.Add(resource.ToEntity());
+                    context.Remove(item);
+                    context.SaveChanges();
                 }
+                context.ApiResources.Add(resource.ToEntity());
+                
+                context.SaveChanges();
             }
 
             foreach (var scope in Config.ApiScopes)
             {
                 var item = context.ApiScopes.SingleOrDefault(c => c.Name == scope.Name);
 
-                if (item == null)
+                if (item != null)
                 {
-                    context.ApiScopes.Add(scope.ToEntity());
+                    context.Remove(item);
+                    context.SaveChanges();
                 }
-            }
 
-            context.SaveChanges();
+                context.ApiScopes.Add(scope.ToEntity());
+
+                context.SaveChanges();
+            }
         }
     }
 }

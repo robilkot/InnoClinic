@@ -17,12 +17,10 @@ namespace OfficesService.Controllers
     {
         private readonly IRepository<DbOfficeModel> _officesRepository;
         private readonly IMapper _mapper;
-        private readonly IPublishEndpoint _publishEndpoint;
-        public OfficesController(IRepository<DbOfficeModel> dbService, IMapper mapper, IPublishEndpoint publishEndpoint)
+        public OfficesController(IRepository<DbOfficeModel> dbService, IMapper mapper)
         {
             _officesRepository = dbService;
             _mapper = mapper;
-            _publishEndpoint = publishEndpoint;
         }
 
         [HttpGet]
@@ -77,8 +75,6 @@ namespace OfficesService.Controllers
             var dbOffice = _mapper.Map<DbOfficeModel>(office);
 
             var updatedOffice = await _officesRepository.Update(dbOffice);
-
-            await _publishEndpoint.Publish(_mapper.Map<OfficeUpdate>(updatedOffice));
 
             Log.Information("Office updated => {@addedOffice}", updatedOffice);
 

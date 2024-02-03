@@ -21,7 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
 		AppointmentsService.Dockerfile = AppointmentsService.Dockerfile
-		init-mongo.js = init-mongo.js
 		OfficesService.Dockerfile = OfficesService.Dockerfile
 		ProfilesService.Dockerfile = ProfilesService.Dockerfile
 		ServicesService.Dockerfile = ServicesService.Dockerfile

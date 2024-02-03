@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using CommonData.Messages;
+﻿using CommonData.Messages;
 using MassTransit;
 using ProfilesService.Services;
 using Serilog;
@@ -8,11 +7,9 @@ namespace ProfilesService.Consumers
 {
     public class OfficeUpdateConsumer : IConsumer<OfficeUpdate>
     {
-        private readonly IMapper _mapper;
         private readonly DbService _dbService;
-        public OfficeUpdateConsumer(IMapper mapper, DbService dbService)
+        public OfficeUpdateConsumer(DbService dbService)
         {
-            _mapper = mapper;
             _dbService = dbService;
         }
         public async Task Consume(ConsumeContext<OfficeUpdate> context)
@@ -22,10 +19,10 @@ namespace ProfilesService.Consumers
             var doctorsToEdit = await _dbService.GetDoctors(0, 0, null, null, null, null);
 
             foreach (var entity in doctorsToEdit)
-            { 
-                if(entity.OfficeId == context.Message.Id)
+            {
+                if (entity.OfficeId == context.Message.Id)
                 {
-                    entity.OfficeAddress = context.Message.Adress;
+                    entity.OfficeAddress = context.Message.Address;
                 }
                 await _dbService.UpdateDoctor(entity);
             };
@@ -36,7 +33,7 @@ namespace ProfilesService.Consumers
             {
                 if (entity.OfficeId == context.Message.Id)
                 {
-                    entity.OfficeAddress = context.Message.Adress;
+                    entity.OfficeAddress = context.Message.Address;
                 }
                 await _dbService.UpdateReceptionist(entity);
             };

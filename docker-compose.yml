@@ -30,6 +30,18 @@ services:
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - DbConnection=Server=IdentityDb,1433;Database=InnoClinicIdentity;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
 
+  identityserverdb:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: IdentityDb
+    ports:
+      - "1433:1433" 
+    environment:
+      - ACCEPT_EULA=y
+      - MSSQL_SA_PASSWORD=InnoClinic123$
+    volumes:
+      - 'identityserver-dbdata:/var/opt/mssql'
+
+
   appointmentsservice:
     image: ${DOCKER_REGISTRY-}appointmentsservice
     container_name: AppointmentsService
@@ -50,8 +62,6 @@ services:
       - RabbitMq:Username=rmuser
       - RabbitMq:Password=rmpassword
 
-
-
   appointmentsdb:
     image: "postgres:latest"
     container_name: AppointmentsDb
@@ -63,18 +73,125 @@ services:
       POSTGRES_USER: "InnoClinic"
     volumes:
       - 'appointments-dbdata:/var/opt/mssql'
- 
-  identityserverdb:
-    image: "mcr.microsoft.com/mssql/server:2022-latest"
-    container_name: IdentityDb
+
+            
+  profilesservice:
+    image: ${DOCKER_REGISTRY-}profilesservice
+    container_name: ProfilesService
+    depends_on:
+      - profilesdb
+      - rabbitmq
     ports:
-      - "1433:1433" 
+      - "5002:5002" 
+    build:
+      context: .
+      dockerfile: ProfilesService.Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:5002
+      - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
+
+  profilesdb:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: ProfilesDb
+    ports:
+      - "1435:1433"
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_PASSWORD=InnoClinic123$
     volumes:
-      - 'identityserver-dbdata:/var/opt/mssql'
+      - 'profiles-dbdata:/var/opt/mssql'
 
+
+
+  officesservice:
+    image: ${DOCKER_REGISTRY-}officesservice
+    container_name: OfficesService
+    depends_on:
+      - officesdb
+      - rabbitmq
+    ports:
+      - "5001:5001" 
+    build:
+      context: .
+      dockerfile: OfficesService.Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:5001
+      - DbConnection=Server=OfficesDb,1433;Database=InnoClinicOffices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
+
+  officesdb:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: OfficesDb
+    ports:
+      - "1434:1433"
+    environment:
+      - ACCEPT_EULA=y
+      - MSSQL_SA_PASSWORD=InnoClinic123$
+    volumes:
+      - 'offices-dbdata:/var/opt/mssql'
+
+
+
+  servicesservice:
+    image: ${DOCKER_REGISTRY-}servicesservice
+    container_name: ServicesService
+    depends_on:
+      - mongo
+    ports:
+      - "5003:5003" 
+    build:
+      context: .
+      dockerfile: ServicesService.Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:5003
+      - DbConnection:mongodb://root:example@mongo:27017
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
+
+  mongo:
+    image: "mongodb/mongodb-community-server:latest"
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - 'services-dbdata:/var/opt/mssql'
+
+  # mongo-express:
+  #   image: mongo-express
+  #   environment:
+  #       - ME_CONFIG_MONGODB_SERVER=mongo
+  #       - ME_CONFIG_MONGODB_PORT=27017
+  #       - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+  #       - ME_CONFIG_MONGODB_AUTH_USERNAME=root
+  #       - ME_CONFIG_MONGODB_AUTH_PASSWORD=example
+  #       - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+  #       - ME_CONFIG_MONGODB_ADMINPASSWORD=example
+  #       - ME_CONFIG_BASICAUTH_USERNAME=root
+  #       - ME_CONFIG_BASICAUTH_PASSWORD=example
+  #   depends_on:
+  #       - mongo
+  #   ports:
+  #       - "8080:8081"
+  #   volumes:
+  #     - 'services-dbdata:/var/opt/mssql'
 
 
 volumes:

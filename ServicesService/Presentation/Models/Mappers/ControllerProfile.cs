@@ -9,11 +9,14 @@ namespace ServicesService.Presentation.Models.Mappers
         public ControllerProfile()
         {
             CreateMap<Service, ClientServiceModel>().ReverseMap();
-            CreateMap<Specialization, ClientSpecializationModel>().ReverseMap();
-            CreateMap<Category, ClientCategoryModel>().ReverseMap();
-
-            CreateMap<Specialization, SpecializationUpdate>().ReverseMap();
             CreateMap<Service, ServiceUpdate>().ReverseMap();
+            CreateMap<Service, ServiceRequest>();
+            
+            CreateMap<Specialization, ClientSpecializationModel>().ReverseMap();
+            CreateMap<Specialization, SpecializationUpdate>().ReverseMap();
+            CreateMap<Specialization, SpecializationRequest>();
+
+            CreateMap<Category, ClientCategoryModel>().ReverseMap();
         }
     }
 }

@@ -124,11 +124,11 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-//{
-//    using var scope = app.Services.CreateScope();
-//    var context = scope.ServiceProvider.GetRequiredService<IRepository<DbOfficeModel>>();
-//    context.Init();
-//}
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<IRepository<DbOfficeModel>>();
+    context.Init();
+}
 
 app.UseCors("AllowCors");
 

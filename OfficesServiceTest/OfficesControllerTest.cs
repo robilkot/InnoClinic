@@ -1,4 +1,5 @@
 using AutoMapper;
+using MassTransit;
 using Moq;
 using OfficesService.Controllers;
 using OfficesService.Data.Models;
@@ -14,6 +15,7 @@ namespace OfficesServiceTest
         public async Task GetOffices_ReturnsAListOfOffices()
         {
             // Arrange
+            var publishEndpointMock = new Mock<IPublishEndpoint>();
             var repoMock = new Mock<IRepository<DbOfficeModel>>();
             var testOffices = GetTestOffices();
 
@@ -71,7 +73,7 @@ namespace OfficesServiceTest
             var testOffices = GetTestOffices();
 
             repoMock.Setup(repo => repo.Get(It.IsAny<Guid>()))
-                .Returns<Guid>((id) => Task.FromResult(testOffices.FirstOrDefault(o => o.Id == id)));
+                .Returns<Guid>((id) => Task.FromResult(testOffices.FirstOrDefault(o => o.Id == id)) ?? throw new Exception("test exception"));
             var config = new MapperConfiguration(opts =>
             {
                 opts.AddProfile(new OfficesControllerProfile());
@@ -97,7 +99,7 @@ namespace OfficesServiceTest
                 new DbOfficeModel()
                 {
                     Id = Guid.NewGuid(),
-                    Adress = "Minsk",
+                    Address = "Minsk",
                     Active = true,
                     Image = null,
                     ImageId = null,
@@ -106,26 +108,18 @@ namespace OfficesServiceTest
                 new DbOfficeModel()
                 {
                     Id = Guid.NewGuid(),
-                    Adress = "Moscow",
+                    Address = "Moscow",
                     Active = false,
-                    Image = new DbImageModel()
-                    {
-                        Id = imgGuid,
-                        Url = "example.com"
-                    },
+                    Image = new byte[2],
                     ImageId = imgGuid,
                     RegistryPhoneNumber = "+123456789012"
                 },
                 new DbOfficeModel()
                 {
                     Id = Guid.NewGuid(),
-                    Adress = "Sydney",
+                    Address = "Sydney",
                     Active = true,
-                    Image = new DbImageModel()
-                    {
-                        Id = imgGuid,
-                        Url = "example.com"
-                    },
+                    Image = new byte[4],
                     ImageId = imgGuid,
                     RegistryPhoneNumber = "+123456789013"
                 }

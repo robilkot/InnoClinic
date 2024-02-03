@@ -1,13 +1,13 @@
 ﻿using CommonData.enums;
 
-namespace ProfilesService.Data.Models
+namespace CommonData.Messages
 {
-    public class DbDoctorModel
+    public class DoctorUpdate
     {
         public Guid Id { get; set; }
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
-        public string? MiddleName { get; set; }
+        public required string MiddleName { get; set; }
         public DateTime DateOfBirth { get; set; }
         public Guid AccountId { get; set; }
         public Guid SpecializationId { get; set; }

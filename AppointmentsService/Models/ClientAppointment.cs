@@ -8,7 +8,6 @@
         public string? PatientFirstName { get; set; }
         public string? PatientMiddleName { get; set; }
         public string? PatientLastName { get; set; }
-        public string? PhoneNumber { get; set; }
         public Guid DoctorId { get; set; }
         // Doctor's name is redudant
         public string? DoctorFirstName { get; set; }

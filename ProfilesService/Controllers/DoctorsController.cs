@@ -1,10 +1,9 @@
 using AutoMapper;
 using CommonData.Constants;
+using CommonData.enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfilesService.Data.Models;
-using ProfilesService.enums;
-using ProfilesService.Exceptions;
 using ProfilesService.Models;
 using ProfilesService.Services;
 using Serilog;
@@ -23,33 +22,32 @@ namespace ProfilesService.Controllers
             _mapper = mapper;
         }
 
-        // Enumerable params to sort doctors by different fields
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDoctorModel>>> GetDoctors([FromQuery] int pageNumber, [FromQuery] int pageSize,
             [FromQuery] IEnumerable<Guid>? specializations, [FromQuery] IEnumerable<Guid>? offices, [FromQuery] string? doctorName, [FromQuery] IEnumerable<DoctorStatusEnum>? status)
         {
             IEnumerable<ClientDoctorModel> clientDoctors;
 
-            if (User.IsInRole(Roles.Receptionist))
-            {
-                var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, status, doctorName);
+            //if (User.IsInRole(Roles.Receptionist))
+            //{
+            var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, status, doctorName);
 
-                clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
-            }
-            else
-            {
-                var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, new List<DoctorStatusEnum>() { DoctorStatusEnum.AtWork }, doctorName);
+            clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
+            //}
+            //else
+            //{
+            //    var dbDoctors = await _dbService.GetDoctors(pageNumber, pageSize, specializations, offices, new List<DoctorStatusEnum>() { DoctorStatusEnum.AtWork }, doctorName);
 
-                clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
+            //    clientDoctors = _mapper.Map<IEnumerable<ClientDoctorModel>>(dbDoctors);
 
-                foreach (var doctor in clientDoctors)
-                {
-                    doctor.DateOfBirth = null;
-                    doctor.Email = null;
-                    doctor.AccountId = null;
-                    doctor.Status = null;
-                }
-            }
+            //    foreach (var doctor in clientDoctors)
+            //    {
+            //        doctor.DateOfBirth = null;
+            //        doctor.Email = null;
+            //        doctor.AccountId = null;
+            //        doctor.Status = null;
+            //    }
+            //}
 
             return new(clientDoctors);
         }
@@ -61,13 +59,13 @@ namespace ProfilesService.Controllers
 
             var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
 
-            if (!User.IsInRole(Roles.Receptionist) && !CurrentUserIsDoctor(dbDoctor.AccountId))
-            {
-                clientDoctor.DateOfBirth = null;
-                clientDoctor.Email = null;
-                clientDoctor.AccountId = null;
-                clientDoctor.Status = null;
-            }
+            //if (!User.IsInRole(Roles.Receptionist) && !CurrentUserIsDoctor(dbDoctor.AccountId))
+            //{
+            //    clientDoctor.DateOfBirth = null;
+            //    clientDoctor.Email = null;
+            //    clientDoctor.AccountId = null;
+            //    clientDoctor.Status = null;
+            //}
 
             return clientDoctor;
         }
@@ -105,20 +103,20 @@ namespace ProfilesService.Controllers
         {
             var dbDoctor = _mapper.Map<DbDoctorModel>(doctor);
 
-            if (User.IsInRole(Roles.Receptionist) || CurrentUserIsDoctor(dbDoctor.AccountId))
-            {
-                var updatedDoctor = await _dbService.UpdateDoctor(dbDoctor);
+            //if (User.IsInRole(Roles.Receptionist) || CurrentUserIsDoctor(dbDoctor.AccountId))
+            //{
+            var updatedDoctor = await _dbService.UpdateDoctor(dbDoctor);
 
-                Log.Information("Doctor updated => {@record}", (updatedDoctor.Id, updatedDoctor.LastName, updatedDoctor.OfficeAddress));
+            Log.Information("Doctor updated => {@record}", (updatedDoctor.Id, updatedDoctor.LastName, updatedDoctor.OfficeAddress));
 
-                var clientDoctor = _mapper.Map<ClientDoctorModel>(updatedDoctor);
+            var clientDoctor = _mapper.Map<ClientDoctorModel>(updatedDoctor);
 
-                return clientDoctor;
-            }
-            else
-            {
-                throw new ProfilesException("Forbidden", 403);
-            }
+            return clientDoctor;
+            //}
+            //else
+            //{
+            //    throw new ProfilesException("Forbidden", 403);
+            //}
         }
 
         private bool CurrentUserIsDoctor(Guid doctorAccountId)

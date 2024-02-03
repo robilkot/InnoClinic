@@ -1,3 +1,4 @@
+using AppointmentsService.Consumers;
 using AppointmentsService.Data;
 using AppointmentsService.Models.MapperProfiles;
 using AppointmentsService.Services;
@@ -45,7 +46,10 @@ builder.Services.AddScoped<DbService>();
 
 builder.Services.AddMassTransit(x =>
 {
-    //x.AddConsumersFromNamespaceContaining<SpecializationRequestConsumer>();
+    x.AddConsumersFromNamespaceContaining<OfficeUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<ServiceUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<PatientUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<DoctorUpdateConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {

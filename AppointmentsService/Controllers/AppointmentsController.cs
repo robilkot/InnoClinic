@@ -7,6 +7,7 @@ using CommonData.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace AppointmentsService.Controllers
 {
@@ -23,23 +24,29 @@ namespace AppointmentsService.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<ClientAppointment>>> GetAppointments([FromQuery] int pageNumber, [FromQuery] int pageSize,
-            [FromQuery] DateTime? date, [FromQuery] Guid? doctorId, [FromQuery] Guid? serviceId, [FromQuery] bool? approved, [FromQuery] Guid? officeId, [FromQuery] Guid? patientId)
+        //[Authorize]
+        public async Task<ActionResult<IEnumerable<ClientAppointment>>> GetAppointments([FromQuery] int pageNumber, 
+                                                                                        [FromQuery] int pageSize,
+                                                                                        [FromQuery] DateTime? date, 
+                                                                                        [FromQuery] Guid? doctorId, 
+                                                                                        [FromQuery] Guid? serviceId, 
+                                                                                        [FromQuery] bool? approved, 
+                                                                                        [FromQuery] Guid? officeId, 
+                                                                                        [FromQuery] Guid? patientId)
         {
-            if (User.IsInRole(Roles.Patient))
-            {
-                var userId = User.Claims.FirstOrDefault(c => c.Type == "Id");
+            //if (User.IsInRole(Roles.Patient))
+            //{
+            //    var userId = User.Claims.FirstOrDefault(c => c.Type == "Id");
                 
-                if(userId == null)
-                {
-                    return Forbid();
-                }
-                else
-                {
-                    patientId = Guid.Parse(userId.Value);
-                }
-            }
+            //    if(userId == null)
+            //    {
+            //        return Forbid();
+            //    }
+            //    else
+            //    {
+            //        patientId = Guid.Parse(userId.Value);
+            //    }
+            //}
 
             var query = new GetAppointmentsQuery()
             {
@@ -70,10 +77,10 @@ namespace AppointmentsService.Controllers
 
             DbAppointment appointments = await _mediator.Send(query);
 
-            if (User.IsInRole(Roles.Patient) && !UserIdMatches(appointments.PatientId))
-            {
-                return Forbid();
-            }
+            //if (User.IsInRole(Roles.Patient) && !UserIdMatches(appointments.PatientId))
+            //{
+            //    return Forbid();
+            //}
 
             var clientAppointment = _mapper.Map<ClientAppointment>(appointments);
 
@@ -81,24 +88,26 @@ namespace AppointmentsService.Controllers
         }
 
         [HttpPost]
-        [Authorize("appointments.edit")]
+        //[Authorize("appointments.edit")]
         public async Task<ActionResult<ClientAppointment>> AddAppointment([FromBody] ClientAppointment appointment)
         {
             DbAppointment dbAppointment = _mapper.Map<DbAppointment>(appointment);
 
             await _mediator.Send(new AddAppointmentCommand() { Appointment = dbAppointment });
 
+            Log.Information("Appointment created => {@record}", (dbAppointment.Id, dbAppointment.ServiceName, dbAppointment.OfficeAddress));
+
             return new(appointment);
         }
 
         [HttpPut]
-        [Authorize("appointments.edit")]
+        //[Authorize("appointments.edit")]
         public async Task<ActionResult<ClientAppointment>> UpdateAppointment([FromBody] ClientAppointment clientAppointment)
         {
-            if (!UserIdMatches(clientAppointment.PatientId) && !User.IsInRole(Roles.Receptionist) && !User.IsInRole(Roles.Admin))
-            {
-                return Forbid();
-            }
+            //if (!UserIdMatches(clientAppointment.PatientId) && !User.IsInRole(Roles.Receptionist) && !User.IsInRole(Roles.Admin))
+            //{
+            //    return Forbid();
+            //}
 
             var dbAppointment = _mapper.Map<DbAppointment>(clientAppointment);
 
@@ -115,13 +124,13 @@ namespace AppointmentsService.Controllers
         }
 
         [HttpPut("approve/{id:Guid}")]
-        [Authorize("appointments.edit")]
+        //[Authorize("appointments.edit")]
         public async Task<ActionResult<ClientAppointment>> ChangeAppointmentApproval(Guid id, [FromQuery] bool approved)
         {
-            if (!User.IsInRole(Roles.Receptionist))
-            {
-                return Forbid();
-            }
+            //if (!User.IsInRole(Roles.Receptionist))
+            //{
+            //    return Forbid();
+            //}
 
             var command = new ChangeAppointmentApprovalCommand()
             {
@@ -144,6 +153,8 @@ namespace AppointmentsService.Controllers
             };
 
             await _mediator.Send(command);
+
+            Log.Information("Appointment deleted => {@record}", id);
 
             return NoContent();
         }

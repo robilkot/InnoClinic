@@ -70,10 +70,10 @@ namespace IdentityServer.Core
                 app.UseHsts();
             }
 
-            //context.Database.Migrate();
+            context.Database.Migrate();
 
-            //DatabaseInitializer.PopulateIdentityServer(app);
-            
+            DatabaseInitializer.PopulateIdentityServer(app);
+
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();

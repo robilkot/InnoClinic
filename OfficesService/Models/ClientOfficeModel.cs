@@ -8,11 +8,11 @@ namespace OfficesService.Models
         public Guid? Id { get; set; }
 
         [Required]
-        public string Adress { get; set; }
+        public required string Address { get; set; }
 
         [Required]
         [DataType(DataType.PhoneNumber)]
-        public string RegistryPhoneNumber { get; set; }
+        public required string RegistryPhoneNumber { get; set; }
 
         [Required]
         public bool Active { get; set; }

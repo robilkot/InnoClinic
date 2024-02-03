@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OfficesService.Consumers;
 using ProfilesService.Consumers;
 using ProfilesService.Data;
 using ProfilesService.Models.MapperProfiles;
@@ -49,6 +50,8 @@ builder.Services.AddScoped<DbService>();
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumersFromNamespaceContaining<OfficeUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<PatientRequestConsumer>();
+    x.AddConsumersFromNamespaceContaining<DoctorRequestConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {

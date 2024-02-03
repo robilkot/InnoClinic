@@ -1,4 +1,4 @@
-﻿namespace ProfilesService.enums
+﻿namespace CommonData.enums
 {
     public enum DoctorStatusEnum
     {

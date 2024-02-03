@@ -1,16 +1,32 @@
 ﻿using AppointmentsService.Data;
 using AppointmentsService.Data.Models;
+using CommonData.Messages;
+using InnoClinicCommonData.Constants;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Numerics;
+using static MassTransit.ValidationResultExtensions;
 
 namespace AppointmentsService.Services
 {
     public class DbService
     {
+        private readonly IRequestClient<OfficeRequest> _officeRequestClient;
+        private readonly IRequestClient<DoctorRequest> _doctorRequestClient;
+        private readonly IRequestClient<ServiceRequest> _serviceRequestClient;
+        private readonly IRequestClient<PatientRequest> _patientRequestClient;
         private readonly AppointmentsDbContext _dbContext;
-        public DbService(AppointmentsDbContext dbContext)
+
+        public DbService(AppointmentsDbContext dbContext,
+            IRequestClient<OfficeRequest> officeRequestClient, IRequestClient<DoctorRequest> doctorRequestClient,
+            IRequestClient<ServiceRequest> serviceRequestClient, IRequestClient<PatientRequest> patientRequestClient)
         {
             _dbContext = dbContext;
+            _officeRequestClient = officeRequestClient;
+            _doctorRequestClient = doctorRequestClient;
+            _serviceRequestClient = serviceRequestClient;
+            _patientRequestClient = patientRequestClient;
         }
 
         public async Task<IEnumerable<DbAppointment>> GetAppointments(int pageNumber, int pageSize,
@@ -20,7 +36,7 @@ namespace AppointmentsService.Services
 
             if (date != null)
             {
-                query = query.Where(d => d.Date == date);
+                query = query.Where(d => d.Date.Date == date.Value.Date);
             }
             if (officeId != null)
             {
@@ -71,6 +87,8 @@ namespace AppointmentsService.Services
         {
             appointment.Id = Guid.NewGuid();
 
+            await SyncAppointmentRedundancy(appointment);
+
             _dbContext.Appointments.Add(appointment);
 
             // todo: datetime slots check
@@ -96,9 +114,9 @@ namespace AppointmentsService.Services
             return appointment;
         }
 
-        public async Task<DbAppointment> UpdateAppointment(DbAppointment doctor)
+        public async Task<DbAppointment> UpdateAppointment(DbAppointment appointment)
         {
-            var toEdit = await _dbContext.Appointments.FirstOrDefaultAsync(o => o.Id == doctor.Id);
+            var toEdit = await _dbContext.Appointments.FirstOrDefaultAsync(o => o.Id == appointment.Id);
 
             if (toEdit == null)
             {
@@ -109,7 +127,7 @@ namespace AppointmentsService.Services
 
             // todo: datetime slots check
 
-            _dbContext.Entry(toEdit).CurrentValues.SetValues(doctor);
+            _dbContext.Entry(toEdit).CurrentValues.SetValues(appointment);
 
             // We have separate method for approving (needed for auth)
             toEdit.IsApproved = oldApproval;
@@ -131,6 +149,133 @@ namespace AppointmentsService.Services
             toEdit.IsApproved = isApproved;
 
             await _dbContext.SaveChangesAsync();
+        }
+
+        private async Task SyncAppointmentRedundancy(DbAppointment appointment)
+        {
+            var officeUpdateTask = new Task(async () =>
+            {
+                try
+                {
+                    var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                    {
+                        Id = appointment.OfficeId
+                    });
+
+                    appointment.OfficeAddress = result.Message.Address;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating doctor's office address");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Offices service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+
+                appointment.OfficeAddress = StringConstants.OfficeUnreacheable;
+            });
+
+            var doctorUpdateTask = new Task(async () =>
+            {
+                try
+                {
+                    var result = await _doctorRequestClient.GetResponse<DoctorUpdate>(new DoctorRequest()
+                    {
+                        Id = appointment.DoctorId
+                    });
+
+                    appointment.DoctorFirstName = result.Message.FirstName;
+                    appointment.DoctorMiddleName = result.Message.MiddleName;
+                    appointment.DoctorLastName = result.Message.LastName;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating doctor's data");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Profiles service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+
+                appointment.DoctorFirstName = StringConstants.ProfileUnreacheable;
+                appointment.DoctorMiddleName = StringConstants.ProfileUnreacheable;
+                appointment.DoctorLastName = StringConstants.ProfileUnreacheable;
+            });
+
+            var patientUpdateTask = new Task(async () =>
+            {
+                try
+                {
+                    var result = await _patientRequestClient.GetResponse<PatientUpdate>(new PatientRequest()
+                    {
+                        Id = appointment.PatientId
+                    });
+
+                    appointment.PatientFirstName = result.Message.FirstName;
+                    appointment.PatientMiddleName = result.Message.MiddleName;
+                    appointment.PatientLastName = result.Message.LastName;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating patient's data");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Profiles service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+
+                appointment.PatientFirstName = StringConstants.ProfileUnreacheable;
+                appointment.PatientMiddleName = StringConstants.ProfileUnreacheable;
+                appointment.PatientLastName = StringConstants.ProfileUnreacheable;
+            });
+
+            var serviceUpdateTask = new Task(async () =>
+            {
+                try
+                {
+                    var result = await _serviceRequestClient.GetResponse<ServiceUpdate>(new ServiceRequest()
+                    {
+                        Id = appointment.ServiceId
+                    });
+
+                    appointment.ServiceName = result.Message.Name;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating service data");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Services service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+
+                appointment.ServiceName = StringConstants.ServiceUnreacheable;
+            });
+
+            try
+            {
+                await Task.WhenAll(serviceUpdateTask, doctorUpdateTask, patientUpdateTask, patientUpdateTask);
+
+                Log.Debug("Appointment data synchronized");
+            }
+            catch (AggregateException ex)
+            {
+                Log.Error("Unhandled exception(s) while processing requests for other microservices: ");
+
+                foreach (var e in ex.InnerExceptions)
+                {
+                    Log.Error(e.Message);
+                }
+            }
         }
     }
 }

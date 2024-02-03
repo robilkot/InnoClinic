@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using ProfilesService.enums;
+﻿using CommonData.enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProfilesService.Models
 {

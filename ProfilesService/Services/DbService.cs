@@ -1,10 +1,11 @@
-﻿using CommonData.Messages;
+﻿using CommonData.enums;
+using CommonData.Messages;
+using InnoClinicCommonData.Constants;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProfilesService.Data;
 using ProfilesService.Data.Models;
-using ProfilesService.enums;
 using ProfilesService.Exceptions;
 using Serilog;
 
@@ -73,37 +74,9 @@ namespace ProfilesService.Services
         {
             doctor.Id = Guid.NewGuid();
 
-            try
-            {
-                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
-                {
-                    Id = doctor.OfficeId
-                });
-
-                doctor.OfficeAddress = result.Message.Adress;
-            }
-            catch (RequestTimeoutException)
-            {
-                Log.Error("Request timeout updating doctor's office address");
-                doctor.OfficeAddress = "Address not specified";
-            }
-
-            try
-            {
-                var result = await _specRequestClient.GetResponse<SpecializationUpdate>(new SpecializationRequest()
-                {
-                    Id = doctor.SpecializationId
-                });
-
-                doctor.SpecializationName = result.Message.Name;
-            }
-            catch (RequestTimeoutException)
-            {
-                Log.Error("Request timeout updating doctor's specialization name");
-                doctor.OfficeAddress = "Specialization not specified";
-            }
-
             _dbContext.Doctors.Add(doctor);
+
+            await SyncDoctorRedundancy(doctor);
 
             await _dbContext.SaveChangesAsync();
 
@@ -135,37 +108,14 @@ namespace ProfilesService.Services
                 throw new ProfilesException("Doctor not found", 404);
             }
 
-            try
-            {
-                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
-                {
-                    Id = doctor.OfficeId
-                });
-
-                doctor.OfficeAddress = result.Message.Adress;
-            }
-            catch (RequestTimeoutException)
-            {
-                Log.Error("Request timeout updating doctor's office address");
-                doctor.OfficeAddress = "Address not specified";
-            }
-
-            try
-            {
-                var result = await _specRequestClient.GetResponse<SpecializationUpdate>(new SpecializationRequest()
-                {
-                    Id = doctor.SpecializationId
-                });
-
-                doctor.SpecializationName = result.Message.Name;
-            }
-            catch (RequestTimeoutException)
-            {
-                Log.Error("Request timeout updating doctor's specialization name");
-                doctor.OfficeAddress = "Specialization not specified";
-            }
-
             _dbContext.Entry(toEdit).CurrentValues.SetValues(doctor);
+
+            // todo: check if this works without double savechanges
+            await _dbContext.SaveChangesAsync();
+
+            await SyncDoctorRedundancy(doctor);
+
+            _dbContext.Entry(doctor).State = EntityState.Modified;
 
             await _dbContext.SaveChangesAsync();
 
@@ -274,7 +224,6 @@ namespace ProfilesService.Services
 
         public async Task<DbReceptionistModel> GetReceptionist(Guid id)
         {
-            // todo: is this obj being tracked?
             var receptionist = await _dbContext.Receptionists.FirstOrDefaultAsync(d => d.Id == id);
 
             if (receptionist == null)
@@ -289,22 +238,11 @@ namespace ProfilesService.Services
         {
             receptionist.Id = Guid.NewGuid();
 
-            try
-            {
-                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
-                {
-                    Id = receptionist.OfficeId
-                });
-
-                receptionist.OfficeAddress = result.Message.Adress;
-            }
-            catch (RequestTimeoutException)
-            {
-                Log.Error("Request timeout updating receptionist's office address");
-                receptionist.OfficeAddress = "Address not specified";
-            }
-
             _dbContext.Receptionists.Add(receptionist);
+
+            await _dbContext.SaveChangesAsync();
+
+            await SyncReceptionistRedundancy(receptionist);
 
             await _dbContext.SaveChangesAsync();
 
@@ -336,26 +274,119 @@ namespace ProfilesService.Services
                 throw new ProfilesException("Receptionist not found", 404);
             }
 
-            try
-            {
-                var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
-                {
-                    Id = receptionist.OfficeId
-                });
-
-                receptionist.OfficeAddress = result.Message.Adress;
-            }
-            catch (RequestTimeoutException)
-            {
-                Log.Error("Request timeout updating receptionist's office address");
-                receptionist.OfficeAddress = "Address not specified";
-            }
-
             _dbContext.Entry(toEdit).CurrentValues.SetValues(receptionist);
+
+            await SyncReceptionistRedundancy(receptionist);
 
             await _dbContext.SaveChangesAsync();
 
             return toEdit;
+        }
+
+        private async Task SyncDoctorRedundancy(DbDoctorModel doctor)
+        {
+            var officeUpdateTask = Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                    {
+                        Id = doctor.OfficeId
+                    });
+
+                    doctor.OfficeAddress = result.Message.Address;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating doctor's office address");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Offices service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+                doctor.OfficeAddress = StringConstants.OfficeUnreacheable;
+            });
+
+            var specializationUpdateTask = Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await _specRequestClient.GetResponse<SpecializationUpdate>(new SpecializationRequest()
+                    {
+                        Id = doctor.SpecializationId
+                    });
+
+                    doctor.SpecializationName = result.Message.Name;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating doctor's specialization name");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Services service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+                doctor.SpecializationName = StringConstants.SpecializationUnreacheable;
+            });
+
+            try
+            {
+                await Task.WhenAll(officeUpdateTask, specializationUpdateTask);
+
+                Log.Debug("Doctor's data synchronized");
+            }
+            catch (AggregateException ex)
+            {
+                Log.Error("Unhandled exception(s) while processing requests for other microservices: ");
+
+                foreach (var e in ex.InnerExceptions)
+                {
+                    Log.Error(e.Message);
+                }
+            }
+        }
+
+        private async Task SyncReceptionistRedundancy(DbReceptionistModel receptionist)
+        {
+            var officeUpdateTask = Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await _officeRequestClient.GetResponse<OfficeUpdate>(new OfficeRequest()
+                    {
+                        Id = receptionist.OfficeId
+                    });
+
+                    receptionist.OfficeAddress = result.Message.Address;
+
+                    return;
+                }
+                catch (RequestTimeoutException)
+                {
+                    Log.Error("Request timeout updating doctor's office address");
+                }
+                catch (RequestFaultException requestFaultException)
+                {
+                    Log.Error("Offices service encountered a problem: {@desc}", requestFaultException.Message);
+                }
+
+                receptionist.OfficeAddress = StringConstants.OfficeUnreacheable;
+            });
+
+            try
+            {
+                await officeUpdateTask;
+
+                Log.Debug("Receptionist's data synchronized");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Unhandled exception(s) while processing requests for other microservices: {@desc}", ex.Message);
+            }
         }
     }
 }

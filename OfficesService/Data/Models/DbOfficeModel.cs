@@ -8,8 +8,8 @@ namespace OfficesService.Data.Models
     {
         [Key]
         public Guid Id { get; set; }
-        public string Adress { get; set; }
-        public string RegistryPhoneNumber { get; set; }
+        public required string Address { get; set; }
+        public required string RegistryPhoneNumber { get; set; }
         public bool Active { get; set; }
         public Guid? ImageId { get; set; }
         // Image is redundant
