@@ -43,15 +43,13 @@ namespace ServicesService.Presentation.Controllers
 
         [HttpDelete("{id:Guid}")]
         [Authorize("services.edit")]
-        public async Task<ActionResult<ClientCategoryModel>> DeleteService(Guid id)
+        public async Task<ActionResult> DeleteService(Guid id)
         {
-            var dbService = await _dbService.Delete(id);
+            await _dbService.Delete(id);
 
-            Log.Information("Category deleted => {@dbService}", dbService.Name);
+            Log.Information("Category deleted => {@dbService}", id);
 
-            var clientService = _mapper.Map<ClientCategoryModel>(dbService);
-
-            return clientService;
+            return NoContent();
         }
 
         [HttpPost]

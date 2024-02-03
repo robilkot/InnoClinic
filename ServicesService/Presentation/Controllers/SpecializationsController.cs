@@ -47,13 +47,11 @@ namespace ServicesService.Presentation.Controllers
         [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> DeleteSpecialization(Guid id)
         {
-            var dbSpec = await _dbService.Delete(id);
+            await _dbService.Delete(id);
 
-            Log.Information("Specialization deleted => {@dbSpec}", dbSpec.Name);
+            Log.Information("Specialization deleted => {@dbSpec}", id);
 
-            var clientSpec = _mapper.Map<ClientSpecializationModel>(dbSpec);
-
-            return clientSpec;
+            return NoContent();
         }
 
         [HttpPost]

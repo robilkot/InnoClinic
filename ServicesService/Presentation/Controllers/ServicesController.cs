@@ -50,13 +50,11 @@ namespace ServicesService.Presentation.Controllers
         [Authorize("services.edit")]
         public async Task<ActionResult<ClientServiceModel>> DeleteService(Guid id)
         {
-            var dbService = await _dbService.Delete(id);
+            await _dbService.Delete(id);
 
-            Log.Information("Service deleted => {@dbService}", dbService);
+            Log.Information("Service deleted => {@dbService}", id);
 
-            var clientService = _mapper.Map<ClientServiceModel>(dbService);
-
-            return clientService;
+            return NoContent();
         }
 
         [HttpPost]

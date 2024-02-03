@@ -1,3 +1,4 @@
+using CommonData.Messages;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,9 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumersFromNamespaceContaining<OfficeUpdateConsumer>();
     x.AddConsumersFromNamespaceContaining<PatientRequestConsumer>();
     x.AddConsumersFromNamespaceContaining<DoctorRequestConsumer>();
+
+    x.AddRequestClient<OfficeRequest>(TimeSpan.FromSeconds(5));
+    x.AddRequestClient<SpecializationRequest>(TimeSpan.FromSeconds(5));
 
     x.UsingRabbitMq((context, cfg) =>
     {

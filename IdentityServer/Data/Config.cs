@@ -8,7 +8,7 @@ namespace IdentityServer.Core.Data
     {
         public static List<Client> Clients = new List<Client>
         {
-                new Client
+            new Client
             {
                 ClientId = "officesService",
                 ClientSecrets = { new Secret("officesService".Sha256()) },

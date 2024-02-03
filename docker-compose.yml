@@ -42,70 +42,70 @@ services:
       - 'identityserver-dbdata:/var/opt/mssql'
 
 
-  # appointmentsservice:
-  #   image: ${DOCKER_REGISTRY-}appointmentsservice
-  #   container_name: AppointmentsService
-  #   depends_on:
-  #     - appointmentsdb
-  #   ports:
-  #     - "5004:5004" 
-  #   build:
-  #     context: .
-  #     dockerfile: AppointmentsService.Dockerfile
-  #   environment:
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=https://+:443;http://+:5004
-  #     - DbConnection:User ID=InnoClinic;Password=InnoClinic123$;Host=AppointmentsDb;Port=5432;Database=InnoClinicAppointments;Pooling=true;Connection Lifetime=0;
-  #     - IdentityPath=http://identityserver:80
-  #     - IdentityPathOuter=http://localhost:5000
-  #     - RabbitMq:Host=rabbitmq
-  #     - RabbitMq:Username=rmuser
-  #     - RabbitMq:Password=rmpassword
-
-  # appointmentsdb:
-  #   image: "postgres:latest"
-  #   container_name: AppointmentsDb
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     POSTGRES_DB: "InnoClinicAppointments"  
-  #     POSTGRES_PASSWORD: "InnoClinic123$"
-  #     POSTGRES_USER: "InnoClinic"
-  #   volumes:
-  #     - 'appointments-dbdata:/var/opt/mssql'
-
-            
-  profilesservice:
-    image: ${DOCKER_REGISTRY-}profilesservice
-    container_name: ProfilesService
+  appointmentsservice:
+    image: ${DOCKER_REGISTRY-}appointmentsservice
+    container_name: AppointmentsService
     depends_on:
-      - profilesdb
-      - rabbitmq
+      - appointmentsdb
     ports:
-      - "5002:5002" 
+      - "5004:5004" 
     build:
       context: .
-      dockerfile: ProfilesService.Dockerfile
+      dockerfile: AppointmentsService.Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:5002
-      - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+      - ASPNETCORE_URLS=https://+:443;http://+:5004
+      - DbConnection:User ID=InnoClinic;Password=InnoClinic123$;Host=AppointmentsDb;Port=5432;Database=InnoClinicAppointments;Pooling=true;Connection Lifetime=0;
       - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
       - RabbitMq:Host=rabbitmq
       - RabbitMq:Username=rmuser
       - RabbitMq:Password=rmpassword
 
-  profilesdb:
-    image: "mcr.microsoft.com/mssql/server:2022-latest"
-    container_name: ProfilesDb
+  appointmentsdb:
+    image: "postgres:latest"
+    container_name: AppointmentsDb
     ports:
-      - "1435:1433"
+      - "5432:5432"
     environment:
-      - ACCEPT_EULA=y
-      - MSSQL_SA_PASSWORD=InnoClinic123$
+      POSTGRES_DB: "InnoClinicAppointments"  
+      POSTGRES_PASSWORD: "InnoClinic123$"
+      POSTGRES_USER: "InnoClinic"
     volumes:
-      - 'profiles-dbdata:/var/opt/mssql'
+      - 'appointments-dbdata:/var/opt/mssql'
+
+            
+  # profilesservice:
+  #   image: ${DOCKER_REGISTRY-}profilesservice
+  #   container_name: ProfilesService
+  #   depends_on:
+  #     - profilesdb
+  #     - rabbitmq
+  #   ports:
+  #     - "5002:5002" 
+  #   build:
+  #     context: .
+  #     dockerfile: ProfilesService.Dockerfile
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=https://+:443;http://+:5002
+  #     - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+  #     - IdentityPath=http://identityserver:80
+  #     - IdentityPathOuter=http://localhost:5000
+  #     - RabbitMq:Host=rabbitmq
+  #     - RabbitMq:Username=rmuser
+  #     - RabbitMq:Password=rmpassword
+
+  # profilesdb:
+  #   image: "mcr.microsoft.com/mssql/server:2022-latest"
+  #   container_name: ProfilesDb
+  #   ports:
+  #     - "1435:1433"
+  #   environment:
+  #     - ACCEPT_EULA=y
+  #     - MSSQL_SA_PASSWORD=InnoClinic123$
+  #   volumes:
+  #     - 'profiles-dbdata:/var/opt/mssql'
 
 
 

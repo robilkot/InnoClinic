@@ -2,6 +2,7 @@ using AppointmentsService.Consumers;
 using AppointmentsService.Data;
 using AppointmentsService.Models.MapperProfiles;
 using AppointmentsService.Services;
+using CommonData.Messages;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -50,6 +51,11 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumersFromNamespaceContaining<ServiceUpdateConsumer>();
     x.AddConsumersFromNamespaceContaining<PatientUpdateConsumer>();
     x.AddConsumersFromNamespaceContaining<DoctorUpdateConsumer>();
+
+    x.AddRequestClient<OfficeRequest>(TimeSpan.FromSeconds(5));
+    x.AddRequestClient<PatientRequest>(TimeSpan.FromSeconds(5));
+    x.AddRequestClient<DoctorRequest>(TimeSpan.FromSeconds(5));
+    x.AddRequestClient<ServiceRequest>(TimeSpan.FromSeconds(5));
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -132,14 +138,26 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+app.UseCors("AllowCors");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(setup =>
+    {
+        setup.SwaggerEndpoint($"/swagger/v1/swagger.json", "Version 1.0");
+        setup.OAuthClientId("appointmentsService");
+        setup.OAuthAppName("Appointments Service");
+        //setup.OAuthScopeSeparator(" ");
+        setup.OAuthUsePkce();
+    });
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+Log.CloseAndFlush();
