@@ -44,6 +44,7 @@ builder.Services.AddNpgsql<AppointmentsDbContext>(connectionString);
 builder.Services.AddAutoMapper(typeof(AppointmentsControllerProfile));
 
 builder.Services.AddScoped<DbService>();
+builder.Services.AddScoped<TimeSlotsService>();
 
 builder.Services.AddMassTransit(x =>
 {

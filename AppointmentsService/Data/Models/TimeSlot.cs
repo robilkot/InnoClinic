@@ -2,8 +2,9 @@
 {
     public class TimeSlot
     {
-        public DateTime Time { get; set; }
-        public TimeSpan Duration { get; set; }
+        public int Hour { get; set; }
+        public int Minute { get; set; }
         public bool Occupied { get; set; }
+        public Guid? AppointmentId { get; set; }
     }
 }

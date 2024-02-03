@@ -13,5 +13,6 @@
         };
 
         public const int DefaultTimeSlotSize = 2;
+        public const int TimeSlotLength = 10;
     }
 }

@@ -16,17 +16,19 @@ namespace AppointmentsService.Services
         private readonly IRequestClient<DoctorRequest> _doctorRequestClient;
         private readonly IRequestClient<ServiceRequest> _serviceRequestClient;
         private readonly IRequestClient<PatientRequest> _patientRequestClient;
+        private readonly TimeSlotsService _timeSlotsService;
         private readonly AppointmentsDbContext _dbContext;
 
         public DbService(AppointmentsDbContext dbContext,
             IRequestClient<OfficeRequest> officeRequestClient, IRequestClient<DoctorRequest> doctorRequestClient,
-            IRequestClient<ServiceRequest> serviceRequestClient, IRequestClient<PatientRequest> patientRequestClient)
+            IRequestClient<ServiceRequest> serviceRequestClient, IRequestClient<PatientRequest> patientRequestClient, TimeSlotsService timeSlotsService)
         {
             _dbContext = dbContext;
             _officeRequestClient = officeRequestClient;
             _doctorRequestClient = doctorRequestClient;
             _serviceRequestClient = serviceRequestClient;
             _patientRequestClient = patientRequestClient;
+            _timeSlotsService = timeSlotsService;
         }
 
         public async Task<IEnumerable<DbAppointment>> GetAppointments(int pageNumber, int pageSize,
@@ -87,11 +89,14 @@ namespace AppointmentsService.Services
         {
             appointment.Id = Guid.NewGuid();
 
+            if(!await _timeSlotsService.AppointmentTimeIsValid(appointment))
+            {
+                throw new ArgumentException("Invalid or conflicting appointment time");
+            }
+
             await SyncAppointmentRedundancy(appointment);
 
             _dbContext.Appointments.Add(appointment);
-
-            // todo: datetime slots check
 
             await _dbContext.SaveChangesAsync();
 
@@ -123,14 +128,14 @@ namespace AppointmentsService.Services
                 //throw new ProfilesException("Doctor not found", 404);
             }
 
-            var oldApproval = toEdit.IsApproved;
-
-            // todo: datetime slots check
+            if (!await _timeSlotsService.AppointmentTimeIsValid(appointment))
+            {
+                throw new ArgumentException("Invalid or conflicting appointment time");
+            }
 
             _dbContext.Entry(toEdit).CurrentValues.SetValues(appointment);
 
-            // We have separate method for approving (needed for auth)
-            toEdit.IsApproved = oldApproval;
+            toEdit.IsApproved = false;
 
             await _dbContext.SaveChangesAsync();
 
