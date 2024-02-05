@@ -51,6 +51,7 @@ builder.Services.AddScoped<DbService>();
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumersFromNamespaceContaining<OfficeUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<OfficeDeleteConsumer>();
     x.AddConsumersFromNamespaceContaining<PatientRequestConsumer>();
     x.AddConsumersFromNamespaceContaining<DoctorRequestConsumer>();
 

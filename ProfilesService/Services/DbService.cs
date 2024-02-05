@@ -212,13 +212,18 @@ namespace ProfilesService.Services
         }
 
 
-        public async Task<IEnumerable<DbReceptionistModel>> GetReceptionists(int pageNumber, int pageSize, string? name)
+        public async Task<IEnumerable<DbReceptionistModel>> GetReceptionists(int pageNumber, int pageSize, IEnumerable<Guid>? offices, string? name)
         {
             IQueryable<DbReceptionistModel> query = _dbContext.Receptionists;
 
             if (name != null)
             {
                 query = query.Where(d => d.FirstName + ' ' + d.MiddleName + ' ' + d.LastName == name); // todo: this is bs check
+            }
+
+            if (offices != null && offices.Any())
+            {
+                query = query.Where(d => offices.Contains(d.OfficeId));
             }
 
             if (pageNumber != 0)
@@ -228,9 +233,9 @@ namespace ProfilesService.Services
                 .Take(pageSize);
             }
 
-            IEnumerable<DbReceptionistModel> patients = await query.AsNoTracking().ToListAsync();
+            IEnumerable<DbReceptionistModel> receptionists = await query.AsNoTracking().ToListAsync();
 
-            return patients;
+            return receptionists;
         }
 
         public async Task<DbReceptionistModel> GetReceptionist(Guid id)

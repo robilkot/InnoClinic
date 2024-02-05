@@ -50,9 +50,12 @@ builder.Services.AddScoped<ITimeSlotsService, TimeSlotsService>();
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumersFromNamespaceContaining<OfficeUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<OfficeDeleteConsumer>();
     x.AddConsumersFromNamespaceContaining<ServiceUpdateConsumer>();
     x.AddConsumersFromNamespaceContaining<PatientUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<PatientDeleteConsumer>();
     x.AddConsumersFromNamespaceContaining<DoctorUpdateConsumer>();
+    x.AddConsumersFromNamespaceContaining<DoctorDeleteConsumer>();
 
     x.AddRequestClient<OfficeRequest>(TimeSpan.FromSeconds(5));
     x.AddRequestClient<PatientRequest>(TimeSpan.FromSeconds(5));

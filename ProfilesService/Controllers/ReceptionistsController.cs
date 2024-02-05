@@ -22,11 +22,14 @@ namespace ProfilesService.Controllers
 
         [HttpGet]
         [Authorize("receptionists.edit")]
-        public async Task<ActionResult<IEnumerable<ClientReceptionistModel>>> GetReceptionists([FromQuery] int pageNumber, [FromQuery] int pageSize, [FromQuery] string? name)
+        public async Task<ActionResult<IEnumerable<ClientReceptionistModel>>> GetReceptionists([FromQuery] int pageNumber,
+                                                                                               [FromQuery] int pageSize,
+                                                                                               [FromQuery] IEnumerable<Guid> officesId,
+                                                                                               [FromQuery] string? name)
         {
             IEnumerable<ClientReceptionistModel> clientReceptionists;
 
-            var dbReceptionists = await _dbService.GetReceptionists(pageNumber, pageSize, name);
+            var dbReceptionists = await _dbService.GetReceptionists(pageNumber, pageSize, officesId, name);
 
             clientReceptionists = _mapper.Map<IEnumerable<ClientReceptionistModel>>(dbReceptionists);
 
