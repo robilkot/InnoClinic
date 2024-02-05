@@ -1,15 +1,19 @@
-﻿using AppointmentsService.Data.Models;
-using InnoClinicCommonData.Constants;
+﻿using AppointmentsService.Data;
+using AppointmentsService.Data.Models;
+using AppointmentsService.Interfaces;
+using AppointmentsService.Models;
+using CommonData.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentsService.Services
 {
-    public class TimeSlotsService
+    public class TimeSlotsService : ITimeSlotsService
     {
-        private readonly DbService _dbService;
+        private readonly AppointmentsDbContext _dbContext;
 
-        public TimeSlotsService(DbService dbService)
+        public TimeSlotsService(AppointmentsDbContext dbContext)
         {
-            _dbService = dbService;
+            _dbContext = dbContext;
         }
 
         public async Task<bool> AppointmentTimeIsValid(DbAppointment appointment)
@@ -38,24 +42,31 @@ namespace AppointmentsService.Services
             return hasConflict;
         }
 
-        public async Task<IEnumerable<TimeSlot>> GetTimeSlots(DateTime date, Guid officeId, Guid doctorId)
+        public async Task<IEnumerable<ClientTimeSlot>> GetTimeSlots(DateTime date, Guid officeId, Guid doctorId)
         {
             var workingHours = TimeSlotsConstants.WorkingHours[(int)date.DayOfWeek];
 
             if (workingHours == null)
             {
-                return Enumerable.Empty<TimeSlot>();
+                return Enumerable.Empty<ClientTimeSlot>();
             }
 
-            var appointmentsToCheck = await _dbService.GetAppointments(0, 0, date, doctorId, null, null, officeId, null);
+            // todo: this is duplicate code just to resolve circular dependency on idbservice
+            IQueryable<DbAppointment> query = _dbContext.Appointments
+                .Where(d => d.Date.Date == date.Date)
+                .Where(d => d.OfficeId == officeId)
+                .Where(d => d.DoctorId == doctorId);
 
-            var timeSlots = new List<TimeSlot>();
+            IEnumerable<DbAppointment>? appointmentsToCheck = await query.AsNoTracking().ToListAsync();
+
+
+            var timeSlots = new List<ClientTimeSlot>();
 
             for (int hour = workingHours.Value.Item1; hour < workingHours.Value.Item2; hour++)
             {
                 for (int minute = 0; minute < 60; minute += TimeSlotsConstants.TimeSlotLength)
                 {
-                    TimeSlot slot = new()
+                    ClientTimeSlot slot = new()
                     {
                         Hour = hour,
                         Minute = minute,

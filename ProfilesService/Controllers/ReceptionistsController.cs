@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfilesService.Data.Models;
-using ProfilesService.Exceptions;
 using ProfilesService.Models;
 using ProfilesService.Services;
 using Serilog;
@@ -46,15 +45,13 @@ namespace ProfilesService.Controllers
 
         [HttpDelete("{id:Guid}")]
         [Authorize("receptionists.edit")]
-        public async Task<ActionResult<ClientReceptionistModel>> DeleteReceptionist(Guid id)
+        public async Task<ActionResult> DeleteReceptionist(Guid id)
         {
-            var dbReceptionist = await _dbService.DeleteReceptionist(id);
+            await _dbService.DeleteReceptionist(id);
 
-            Log.Information("Receptionist deleted => {@dbReceptionist}", dbReceptionist);
+            Log.Information("Receptionist deleted => {@dbReceptionist}", id);
 
-            var clientReceptionist = _mapper.Map<ClientReceptionistModel>(dbReceptionist);
-
-            return clientReceptionist;
+            return NoContent();
         }
 
         [HttpPost]

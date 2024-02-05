@@ -1,13 +1,13 @@
 ﻿using AppointmentsService.Commands;
-using AppointmentsService.Services;
+using AppointmentsService.Interfaces;
 using MediatR;
 
 namespace AppointmentsService.Handlers
 {
     public class DeleteAppointmentHandler : IRequestHandler<DeleteAppointmentCommand>
     {
-        private readonly DbService _dbService;
-        public DeleteAppointmentHandler(DbService dbService)
+        private readonly IDbService _dbService;
+        public DeleteAppointmentHandler(IDbService dbService)
         {
             _dbService = dbService;
         }

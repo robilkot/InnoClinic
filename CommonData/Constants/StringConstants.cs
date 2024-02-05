@@ -1,4 +1,4 @@
-﻿namespace InnoClinicCommonData.Constants
+﻿namespace CommonData.Constants
 {
     public static class StringConstants
     {

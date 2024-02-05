@@ -1,6 +1,6 @@
-﻿namespace AppointmentsService.Data.Models
+﻿namespace AppointmentsService.Models
 {
-    public class TimeSlot
+    public class ClientTimeSlot
     {
         public int Hour { get; set; }
         public int Minute { get; set; }

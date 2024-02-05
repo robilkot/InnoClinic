@@ -1,14 +1,14 @@
 ﻿using AppointmentsService.Data.Models;
+using AppointmentsService.Interfaces;
 using AppointmentsService.Queries;
-using AppointmentsService.Services;
 using MediatR;
 
 namespace AppointmentsService.Handlers
 {
     public class GetAppointmentsHandler : IRequestHandler<GetAppointmentsQuery, IEnumerable<DbAppointment>>
     {
-        private readonly DbService _dbService;
-        public GetAppointmentsHandler(DbService dbService)
+        private readonly IDbService _dbService;
+        public GetAppointmentsHandler(IDbService dbService)
         {
             _dbService = dbService;
         }

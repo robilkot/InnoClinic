@@ -72,15 +72,13 @@ namespace ProfilesService.Controllers
 
         [HttpDelete("{id:Guid}")]
         [Authorize("doctors.edit")]
-        public async Task<ActionResult<ClientDoctorModel>> DeleteDoctor(Guid id)
+        public async Task<ActionResult> DeleteDoctor(Guid id)
         {
-            var dbDoctor = await _dbService.DeleteDoctor(id);
+            await _dbService.DeleteDoctor(id);
 
-            Log.Information("Doctor deleted => {@record}", (dbDoctor.Id, dbDoctor.LastName, dbDoctor.OfficeAddress));
+            Log.Information("Doctor deleted => {@record}", id);
 
-            var clientDoctor = _mapper.Map<ClientDoctorModel>(dbDoctor);
-
-            return clientDoctor;
+            return NoContent();
         }
 
         [HttpPost]

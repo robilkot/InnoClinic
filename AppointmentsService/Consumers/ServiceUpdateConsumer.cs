@@ -1,4 +1,4 @@
-﻿using AppointmentsService.Services;
+﻿using AppointmentsService.Interfaces;
 using CommonData.Messages;
 using MassTransit;
 using Serilog;
@@ -7,8 +7,8 @@ namespace AppointmentsService.Consumers
 {
     public class ServiceUpdateConsumer : IConsumer<ServiceUpdate>
     {
-        private readonly DbService _dbService;
-        public ServiceUpdateConsumer(DbService dbService)
+        private readonly IDbService _dbService;
+        public ServiceUpdateConsumer(IDbService dbService)
         {
             _dbService = dbService;
         }

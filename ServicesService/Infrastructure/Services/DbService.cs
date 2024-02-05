@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
+using CommonData.Constants;
+using CommonData.Exceptions;
 using CommonData.Messages;
-using InnoClinicCommonData.Constants;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using Serilog;
 using ServicesService.Domain.Entities;
-using ServicesService.Domain.Exceptions;
 using ServicesService.Domain.Interfaces;
 
 namespace ServicesService.Infrastructure.Services
@@ -40,7 +40,7 @@ namespace ServicesService.Infrastructure.Services
 
                 if (serviceCategory == null)
                 {
-                    throw new ServicesException("Can't find specified service category", 404);
+                    throw new InnoClinicException("Can't find specified service category", 404);
                 }
                 else
                 {
@@ -54,7 +54,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (serviceSpec == null)
             {
-                throw new ServicesException("Can't find specified service specialization", 404);
+                throw new InnoClinicException("Can't find specified service specialization", 404);
             }
 
             var servicesCollection = _dbContext.GetCollection<Service>("Services");
@@ -72,10 +72,12 @@ namespace ServicesService.Infrastructure.Services
 
             if (service == null)
             {
-                throw new ServicesException("Service not found", 404);
+                throw new InnoClinicException("Service not found", 404);
             }
 
             await servicesCollection.DeleteOneAsync(s => s.Id == id);
+
+            await _publishEndpoint.Publish(new ServiceDelete() { Id = id });
 
             return;
         }
@@ -88,7 +90,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (service == null)
             {
-                throw new ServicesException("Service not found", 404);
+                throw new InnoClinicException("Service not found", 404);
             }
 
             return service;
@@ -106,9 +108,11 @@ namespace ServicesService.Infrastructure.Services
                 filter &= filterBuilder.In("CategoryId", categories);
             }
 
-            FindOptions<Service> options = new FindOptions<Service>();
-            options.Skip = (page - 1) * pageSize;
-            options.Limit = pageSize;
+            FindOptions<Service> options = new()
+            {
+                Skip = (page - 1) * pageSize,
+                Limit = pageSize
+            };
 
             using (var cursor = await servicesCollection.FindAsync(filter, options))
             {
@@ -124,7 +128,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (toEdit == null)
             {
-                throw new ServicesException("Service not found", 404);
+                throw new InnoClinicException("Service not found", 404);
             }
 
             // Do not change timeslotsize to new value
@@ -161,7 +165,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (toEdit == null)
             {
-                throw new ServicesException("Specialization not found", 404);
+                throw new InnoClinicException("Specialization not found", 404);
             }
 
             await specCollection.ReplaceOneAsync(s => s.Id == spec.Id, spec);
@@ -177,7 +181,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (spec == null)
             {
-                throw new ServicesException("Specialization not found", 404);
+                throw new InnoClinicException("Specialization not found", 404);
             }
 
             await specCollection.DeleteOneAsync(s => s.Id == id);
@@ -188,6 +192,8 @@ namespace ServicesService.Infrastructure.Services
             UpdateDefinition<Service> updateDefinition = Builders<Service>.Update.Set(x => x.SpecializationId, null);
 
             var servicesToUpdate = await servicesCollection.UpdateManyAsync(x => x.SpecializationId == spec.Id, updateDefinition);
+
+            await _publishEndpoint.Publish(new SpecializationDelete() { Id = id });
 
             return;
         }
@@ -200,7 +206,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (specialization == null)
             {
-                throw new ServicesException("Specialization not found", 404);
+                throw new InnoClinicException("Specialization not found", 404);
             }
 
             return specialization;
@@ -210,9 +216,11 @@ namespace ServicesService.Infrastructure.Services
         {
             var servicesCollection = _dbContext.GetCollection<Specialization>("Specializations");
 
-            FindOptions<Specialization> options = new FindOptions<Specialization>();
-            options.Skip = (page - 1) * pageSize;
-            options.Limit = pageSize;
+            FindOptions<Specialization> options = new()
+            {
+                Skip = (page - 1) * pageSize,
+                Limit = pageSize
+            };
 
             using (var cursor = await servicesCollection.FindAsync(FilterDefinition<Specialization>.Empty, options))
             {
@@ -228,7 +236,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (category == null)
             {
-                throw new ServicesException("Category not found", 404);
+                throw new InnoClinicException("Category not found", 404);
             }
 
             return category;
@@ -238,9 +246,11 @@ namespace ServicesService.Infrastructure.Services
         {
             var servicesCollection = _dbContext.GetCollection<Category>("Categories");
 
-            FindOptions<Category> options = new FindOptions<Category>();
-            options.Skip = (page - 1) * pageSize;
-            options.Limit = pageSize;
+            FindOptions<Category> options = new()
+            {
+                Skip = (page - 1) * pageSize,
+                Limit = pageSize
+            };
 
             using (var cursor = await servicesCollection.FindAsync(FilterDefinition<Category>.Empty, options))
             {
@@ -267,7 +277,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (toEdit == null)
             {
-                throw new ServicesException("Category not found", 404);
+                throw new InnoClinicException("Category not found", 404);
             }
 
             await categoriesCollection.ReplaceOneAsync(s => s.Id == category.Id, category);
@@ -301,7 +311,7 @@ namespace ServicesService.Infrastructure.Services
 
             if (category == null)
             {
-                throw new ServicesException("Category not found", 404);
+                throw new InnoClinicException("Category not found", 404);
             }
 
             await categoryCollection.DeleteOneAsync(s => s.Id == id);

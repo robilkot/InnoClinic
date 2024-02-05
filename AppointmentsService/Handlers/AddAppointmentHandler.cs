@@ -1,5 +1,6 @@
 ﻿using AppointmentsService.Commands;
 using AppointmentsService.Data.Models;
+using AppointmentsService.Interfaces;
 using AppointmentsService.Queries;
 using AppointmentsService.Services;
 using MediatR;
@@ -8,8 +9,8 @@ namespace AppointmentsService.Handlers
 {
     public class AddAppointmentHandler : IRequestHandler<AddAppointmentCommand, DbAppointment>
     {
-        private readonly DbService _dbService;
-        public AddAppointmentHandler(DbService dbService)
+        private readonly IDbService _dbService;
+        public AddAppointmentHandler(IDbService dbService)
         {
             _dbService = dbService;
         }

@@ -1,15 +1,15 @@
 ﻿using AutoMapper;
+using CommonData.Exceptions;
 using CommonData.Messages;
 using Dapper;
 using MassTransit;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OfficesService.Data.Models;
-using OfficesService.Exceptions;
 using System.Data;
+using System.Data.Common;
 using Z.Dapper.Plus;
 using static Dapper.SqlMapper;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace OfficesService.Repository
 {
@@ -29,32 +29,57 @@ namespace OfficesService.Repository
         {
             entity.Id = Guid.NewGuid();
 
-            var result = await _connection.ExecuteAsync("INSERT INTO Offices (Id, Address, RegistryPhoneNumber, Active, ImageId) VALUES (@Id, @Address, @RegistryPhoneNumber, @Active, @ImageId)", entity);
+            try
+            {
+                var result = await _connection.ExecuteAsync("INSERT INTO Offices (Id, Address, RegistryPhoneNumber, Active, ImageId) VALUES (@Id, @Address, @RegistryPhoneNumber, @Active, @ImageId)", entity);
+            }
+            catch (DbException dbEx)
+            {
+                throw new InnoClinicException(dbEx.Message, 500);
+            }
 
-            return result > 0 ? entity : throw new OfficesException("Couldn't add new office", 500);
+            return entity;
         }
 
-        public async Task<DbOfficeModel> Delete(Guid id)
+        public async Task Delete(Guid id)
         {
             var toDelete = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { Id = id });
 
             if (toDelete == null)
             {
-                throw new OfficesException("Office not found", 404);
+                throw new InnoClinicException("Office not found", 404);
             }
 
-            var result = await _connection.ExecuteAsync("DELETE FROM Offices WHERE Id = @Id", new { Id = id });
+            try
+            {
+                var result = await _connection.ExecuteAsync("DELETE FROM Offices WHERE Id = @Id", new { Id = id });
+            }
+            catch (DbException dbEx)
+            {
+                throw new InnoClinicException(dbEx.Message, 500);
+            }
 
-            return result > 0 ? toDelete : throw new OfficesException("Couldn't add new office", 500);
+            await _publishEndpoint.Publish(new OfficeDelete() { Id = id });
+
+            return;
         }
 
         public async Task<DbOfficeModel> Get(Guid id)
         {
-            var office = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { Id = id });
+            DbOfficeModel? office;
+
+            try
+            {
+                office = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { Id = id });
+            }
+            catch (DbException dbEx)
+            {
+                throw new InnoClinicException(dbEx.Message, 500);
+            }
 
             if (office == null)
             {
-                throw new OfficesException("Office not found", 404);
+                throw new InnoClinicException("Office not found", 404);
             }
 
             return office;
@@ -62,18 +87,36 @@ namespace OfficesService.Repository
 
         public async Task<IEnumerable<DbOfficeModel>> GetAll()
         {
-            var offices = await _connection.QueryAsync<DbOfficeModel>("SELECT * FROM Offices");
+            IEnumerable<DbOfficeModel> offices;
+
+            try
+            {
+                offices = await _connection.QueryAsync<DbOfficeModel>("SELECT * FROM Offices");
+            }
+            catch (DbException dbEx)
+            {
+                throw new InnoClinicException(dbEx.Message, 500);
+            }
 
             return offices;
         }
 
         public async Task<DbOfficeModel> Update(DbOfficeModel entity)
         {
-            var toEdit = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { entity.Id });
+            DbOfficeModel? toEdit;
+
+            try
+            {
+                toEdit = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { entity.Id });
+            }
+            catch (DbException dbEx)
+            {
+                throw new InnoClinicException(dbEx.Message, 500);
+            }
 
             if (toEdit == null)
             {
-                throw new OfficesException("Office not found", 404);
+                throw new InnoClinicException("Office not found", 404);
             }
 
             var sql = @"UPDATE Offices
@@ -92,16 +135,19 @@ namespace OfficesService.Repository
                 Id = entity.Id
             };
 
-            // todo: is photo being updated? check image models for client and db
-            await _connection.ExecuteAsync(sql, parameters);
-
-            // query edited office
-            var editedOffice = await _connection.QuerySingleOrDefaultAsync<DbOfficeModel>("SELECT * FROM Offices WHERE Id = @Id", new { entity.Id });
+            try
+            {
+                await _connection.ExecuteAsync(sql, parameters);
+            }
+            catch (DbException dbEx)
+            {
+                throw new InnoClinicException(dbEx.Message, 500);
+            }
 
             // publish message to other services
-            await _publishEndpoint.Publish(_mapper.Map<OfficeUpdate>(editedOffice));
+            await _publishEndpoint.Publish(_mapper.Map<OfficeUpdate>(entity));
 
-            return editedOffice!;
+            return entity;
         }
 
         public void Init()

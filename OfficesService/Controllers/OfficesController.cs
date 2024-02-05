@@ -44,15 +44,13 @@ namespace OfficesService.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        public async Task<ActionResult<ClientOfficeModel>> DeleteOffice(Guid id)
+        public async Task<ActionResult> DeleteOffice(Guid id)
         {
-            var dbOffice = await _officesRepository.Delete(id);
+            await _officesRepository.Delete(id);
 
-            Log.Information("Office deleted => {@dbOffice}", dbOffice);
+            Log.Information("Office deleted => {@dbOffice}", id);
 
-            var clientOffice = _mapper.Map<ClientOfficeModel>(dbOffice);
-
-            return clientOffice;
+            return NoContent();
         }
 
         [HttpPost]

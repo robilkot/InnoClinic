@@ -1,5 +1,6 @@
 using AppointmentsService.Consumers;
 using AppointmentsService.Data;
+using AppointmentsService.Interfaces;
 using AppointmentsService.Models.MapperProfiles;
 using AppointmentsService.Services;
 using CommonData.Messages;
@@ -43,8 +44,8 @@ builder.Services.AddNpgsql<AppointmentsDbContext>(connectionString);
 
 builder.Services.AddAutoMapper(typeof(AppointmentsControllerProfile));
 
-builder.Services.AddScoped<DbService>();
-builder.Services.AddScoped<TimeSlotsService>();
+builder.Services.AddScoped<IDbService, DbService>();
+builder.Services.AddScoped<ITimeSlotsService, TimeSlotsService>();
 
 builder.Services.AddMassTransit(x =>
 {

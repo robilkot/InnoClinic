@@ -1,13 +1,13 @@
 ﻿using AppointmentsService.Commands;
-using AppointmentsService.Services;
+using AppointmentsService.Interfaces;
 using MediatR;
 
 namespace AppointmentsService.Handlers
 {
     public class ChangeAppointmentApprovalHandler : IRequestHandler<ChangeAppointmentApprovalCommand>
     {
-        private readonly DbService _dbService;
-        public ChangeAppointmentApprovalHandler(DbService dbService)
+        private readonly IDbService _dbService;
+        public ChangeAppointmentApprovalHandler(IDbService dbService)
         {
             _dbService = dbService;
         }

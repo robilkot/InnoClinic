@@ -1,27 +1,27 @@
 ﻿using AppointmentsService.Data;
 using AppointmentsService.Data.Models;
+using AppointmentsService.Interfaces;
+using CommonData.Constants;
+using CommonData.Exceptions;
 using CommonData.Messages;
-using InnoClinicCommonData.Constants;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using System.Numerics;
-using static MassTransit.ValidationResultExtensions;
 
 namespace AppointmentsService.Services
 {
-    public class DbService
+    public class DbService : IDbService
     {
         private readonly IRequestClient<OfficeRequest> _officeRequestClient;
         private readonly IRequestClient<DoctorRequest> _doctorRequestClient;
         private readonly IRequestClient<ServiceRequest> _serviceRequestClient;
         private readonly IRequestClient<PatientRequest> _patientRequestClient;
-        private readonly TimeSlotsService _timeSlotsService;
+        private readonly ITimeSlotsService _timeSlotsService;
         private readonly AppointmentsDbContext _dbContext;
 
         public DbService(AppointmentsDbContext dbContext,
             IRequestClient<OfficeRequest> officeRequestClient, IRequestClient<DoctorRequest> doctorRequestClient,
-            IRequestClient<ServiceRequest> serviceRequestClient, IRequestClient<PatientRequest> patientRequestClient, TimeSlotsService timeSlotsService)
+            IRequestClient<ServiceRequest> serviceRequestClient, IRequestClient<PatientRequest> patientRequestClient, ITimeSlotsService timeSlotsService) 
         {
             _dbContext = dbContext;
             _officeRequestClient = officeRequestClient;
@@ -32,7 +32,12 @@ namespace AppointmentsService.Services
         }
 
         public async Task<IEnumerable<DbAppointment>> GetAppointments(int pageNumber, int pageSize,
-            DateTime? date, Guid? doctorId, Guid? serviceId, bool? Approved, Guid? officeId, Guid? patientId)
+                                                                      DateTime? date,
+                                                                      Guid? doctorId,
+                                                                      Guid? serviceId,
+                                                                      bool? Approved,
+                                                                      Guid? officeId,
+                                                                      Guid? patientId)
         {
             IQueryable<DbAppointment> query = _dbContext.Appointments;
 
@@ -79,7 +84,7 @@ namespace AppointmentsService.Services
 
             if (appointment == null)
             {
-                //throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Appointment not found", 404);
             }
 
             return appointment;
@@ -89,9 +94,9 @@ namespace AppointmentsService.Services
         {
             appointment.Id = Guid.NewGuid();
 
-            if(!await _timeSlotsService.AppointmentTimeIsValid(appointment))
+            if (!await _timeSlotsService.AppointmentTimeIsValid(appointment))
             {
-                throw new ArgumentException("Invalid or conflicting appointment time");
+                throw new InnoClinicException("Conflicting or invalid appointment time", 409);
             }
 
             await SyncAppointmentRedundancy(appointment);
@@ -109,7 +114,7 @@ namespace AppointmentsService.Services
 
             if (appointment == null)
             {
-                //throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Appointment not found", 404);
             }
 
             _dbContext.Appointments.Remove(appointment);
@@ -125,12 +130,12 @@ namespace AppointmentsService.Services
 
             if (toEdit == null)
             {
-                //throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Appointment not found", 404);
             }
 
             if (!await _timeSlotsService.AppointmentTimeIsValid(appointment))
             {
-                throw new ArgumentException("Invalid or conflicting appointment time");
+                throw new InnoClinicException("Conflicting or invalid appointment time", 409);
             }
 
             _dbContext.Entry(toEdit).CurrentValues.SetValues(appointment);
@@ -148,7 +153,7 @@ namespace AppointmentsService.Services
 
             if (toEdit == null)
             {
-                //throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Appointment not found", 404);
             }
 
             toEdit.IsApproved = isApproved;

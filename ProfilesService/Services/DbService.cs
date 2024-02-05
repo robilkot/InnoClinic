@@ -1,26 +1,32 @@
-﻿using CommonData.enums;
+﻿using AutoMapper;
+using CommonData.Constants;
+using CommonData.enums;
+using CommonData.Exceptions;
 using CommonData.Messages;
-using InnoClinicCommonData.Constants;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProfilesService.Data;
 using ProfilesService.Data.Models;
-using ProfilesService.Exceptions;
 using Serilog;
+using System.Numerics;
 
 namespace ProfilesService.Services
 {
     public class DbService
     {
         private readonly ProfilesDbContext _dbContext;
-        readonly IRequestClient<OfficeRequest> _officeRequestClient;
-        readonly IRequestClient<SpecializationRequest> _specRequestClient;
-        public DbService(ProfilesDbContext dbContext, IRequestClient<OfficeRequest> officeRequestClient, IRequestClient<SpecializationRequest> specRequestClient)
+        private readonly IRequestClient<OfficeRequest> _officeRequestClient;
+        private readonly IRequestClient<SpecializationRequest> _specRequestClient;
+        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMapper _mapper;
+        public DbService(ProfilesDbContext dbContext, IRequestClient<OfficeRequest> officeRequestClient, IRequestClient<SpecializationRequest> specRequestClient, IPublishEndpoint publishEndpoint, IMapper mapper)
         {
             _dbContext = dbContext;
             _officeRequestClient = officeRequestClient;
             _specRequestClient = specRequestClient;
+            _publishEndpoint = publishEndpoint;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<DbDoctorModel>> GetDoctors(int pageNumber, int pageSize,
@@ -59,12 +65,11 @@ namespace ProfilesService.Services
 
         public async Task<DbDoctorModel> GetDoctor(Guid id)
         {
-            // todo: is this obj being tracked?
             var doctor = await _dbContext.Doctors.FirstOrDefaultAsync(d => d.Id == id);
 
             if (doctor == null)
             {
-                throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Doctor not found", 404);
             }
 
             return doctor;
@@ -83,20 +88,22 @@ namespace ProfilesService.Services
             return doctor;
         }
 
-        public async Task<DbDoctorModel> DeleteDoctor(Guid id)
+        public async Task DeleteDoctor(Guid id)
         {
             var doctor = await _dbContext.Doctors.FirstOrDefaultAsync(o => o.Id == id);
 
             if (doctor == null)
             {
-                throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Doctor not found", 404);
             }
 
             _dbContext.Doctors.Remove(doctor);
 
             await _dbContext.SaveChangesAsync();
 
-            return doctor;
+            await _publishEndpoint.Publish(new DoctorDelete() { Id = id });
+
+            return;
         }
 
         public async Task<DbDoctorModel> UpdateDoctor(DbDoctorModel doctor)
@@ -105,19 +112,18 @@ namespace ProfilesService.Services
 
             if (toEdit == null)
             {
-                throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Doctor not found", 404);
             }
-
-            _dbContext.Entry(toEdit).CurrentValues.SetValues(doctor);
-
-            // todo: check if this works without double savechanges
-            await _dbContext.SaveChangesAsync();
 
             await SyncDoctorRedundancy(doctor);
 
-            _dbContext.Entry(doctor).State = EntityState.Modified;
+            _dbContext.Entry(toEdit).CurrentValues.SetValues(doctor);
 
             await _dbContext.SaveChangesAsync();
+
+            var doctorUpdate = _mapper.Map<DoctorUpdate>(doctor);
+
+            await _publishEndpoint.Publish(doctorUpdate);
 
             return toEdit;
         }
@@ -146,12 +152,11 @@ namespace ProfilesService.Services
 
         public async Task<DbPatientModel> GetPatient(Guid id)
         {
-            // todo: is this obj being tracked?
             var doctor = await _dbContext.Patients.FirstOrDefaultAsync(d => d.Id == id);
 
             if (doctor == null)
             {
-                throw new ProfilesException("Doctor not found", 404);
+                throw new InnoClinicException("Doctor not found", 404);
             }
 
             return doctor;
@@ -168,20 +173,22 @@ namespace ProfilesService.Services
             return patient;
         }
 
-        public async Task<DbPatientModel> DeletePatient(Guid id)
+        public async Task DeletePatient(Guid id)
         {
             var patient = await _dbContext.Patients.FirstOrDefaultAsync(o => o.Id == id);
 
             if (patient == null)
             {
-                throw new ProfilesException("Patient not found", 404);
+                throw new InnoClinicException("Patient not found", 404);
             }
 
             _dbContext.Patients.Remove(patient);
 
             await _dbContext.SaveChangesAsync();
 
-            return patient;
+            await _publishEndpoint.Publish(new PatientDelete() { Id = id });
+
+            return;
         }
 
         public async Task<DbPatientModel> UpdatePatient(DbPatientModel patient)
@@ -190,12 +197,16 @@ namespace ProfilesService.Services
 
             if (toEdit == null)
             {
-                throw new ProfilesException("Patient not found", 404);
+                throw new InnoClinicException("Patient not found", 404);
             }
 
             _dbContext.Entry(toEdit).CurrentValues.SetValues(patient);
 
             await _dbContext.SaveChangesAsync();
+
+            var patientUpdate = _mapper.Map<PatientUpdate>(patient);
+
+            await _publishEndpoint.Publish(patientUpdate);
 
             return toEdit;
         }
@@ -228,7 +239,7 @@ namespace ProfilesService.Services
 
             if (receptionist == null)
             {
-                throw new ProfilesException("Receptionist not found", 404);
+                throw new InnoClinicException("Receptionist not found", 404);
             }
 
             return receptionist;
@@ -249,20 +260,20 @@ namespace ProfilesService.Services
             return receptionist;
         }
 
-        public async Task<DbReceptionistModel> DeleteReceptionist(Guid id)
+        public async Task DeleteReceptionist(Guid id)
         {
             var receptionist = await _dbContext.Receptionists.FirstOrDefaultAsync(o => o.Id == id);
 
             if (receptionist == null)
             {
-                throw new ProfilesException("Receptionist not found", 404);
+                throw new InnoClinicException("Receptionist not found", 404);
             }
 
             _dbContext.Receptionists.Remove(receptionist);
 
             await _dbContext.SaveChangesAsync();
 
-            return receptionist;
+            return;
         }
 
         public async Task<DbReceptionistModel> UpdateReceptionist(DbReceptionistModel receptionist)
@@ -271,7 +282,7 @@ namespace ProfilesService.Services
 
             if (toEdit == null)
             {
-                throw new ProfilesException("Receptionist not found", 404);
+                throw new InnoClinicException("Receptionist not found", 404);
             }
 
             _dbContext.Entry(toEdit).CurrentValues.SetValues(receptionist);

@@ -1,8 +1,8 @@
 using AutoMapper;
+using CommonData.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfilesService.Data.Models;
-using ProfilesService.Exceptions;
 using ProfilesService.Models;
 using ProfilesService.Services;
 using Serilog;
@@ -41,7 +41,7 @@ namespace ProfilesService.Controllers
 
             if (!User.IsInRole("receptionist") && !CurrentUserIsPatient(dbPatient.AccountId))
             {
-                throw new ProfilesException("Forbidden", 403);
+                throw new InnoClinicException("Forbidden", 403);
             }
 
             var clientPatient = _mapper.Map<ClientPatientModel>(dbPatient);
@@ -51,15 +51,13 @@ namespace ProfilesService.Controllers
 
         [HttpDelete("{id:Guid}")]
         [Authorize("patients.edit")]
-        public async Task<ActionResult<ClientPatientModel>> DeletePatient(Guid id)
+        public async Task<ActionResult> DeletePatient(Guid id)
         {
-            var dbPatient = await _dbService.DeletePatient(id);
+            await _dbService.DeletePatient(id);
 
-            Log.Information("Patient deleted => {@dbPatient}", dbPatient);
+            Log.Information("Patient deleted => {@dbPatient}", id);
 
-            var clientPatient = _mapper.Map<ClientPatientModel>(dbPatient);
-
-            return clientPatient;
+            return NoContent();
         }
 
         [HttpPost]
@@ -94,7 +92,7 @@ namespace ProfilesService.Controllers
             }
             else
             {
-                throw new ProfilesException("Forbidden", 403);
+                throw new InnoClinicException("Forbidden", 403);
             }
         }
 

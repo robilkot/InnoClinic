@@ -18,7 +18,6 @@ var rmHost = Environment.GetEnvironmentVariable("RabbitMq:Host") ?? builder.Conf
 var rmUsername = Environment.GetEnvironmentVariable("RabbitMq:Username") ?? builder.Configuration.GetValue("RabbitMq:Username", "rmuser");
 var rmPassword = Environment.GetEnvironmentVariable("RabbitMq:Password") ?? builder.Configuration.GetValue("RabbitMq:Password", "rmpassword");
 
-// Add services to the container.
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -36,9 +35,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAutoMapper(typeof(OfficesControllerProfile));
-// todo: scoped vs transient?
-builder.Services.AddTransient<IRepository<DbOfficeModel>, OfficeRepository>();
-
+builder.Services.AddScoped<IRepository<DbOfficeModel>, OfficeRepository>();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -124,6 +121,7 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+if (bool.Parse(app.Configuration["populatedb"]!))
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<IRepository<DbOfficeModel>>();

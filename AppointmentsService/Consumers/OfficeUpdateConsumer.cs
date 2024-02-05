@@ -1,4 +1,4 @@
-﻿using AppointmentsService.Services;
+﻿using AppointmentsService.Interfaces;
 using AutoMapper;
 using CommonData.Messages;
 using MassTransit;
@@ -8,8 +8,8 @@ namespace AppointmentsService.Consumers
 {
     public class OfficeUpdateConsumer : IConsumer<OfficeUpdate>
     {
-        private readonly DbService _dbService;
-        public OfficeUpdateConsumer(DbService dbService)
+        private readonly IDbService _dbService;
+        public OfficeUpdateConsumer(IDbService dbService)
         {
             _dbService = dbService;
         }

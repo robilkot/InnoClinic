@@ -25,6 +25,8 @@ services:
     build:
       context: .
       dockerfile: IdentityServer/Dockerfile
+    command:
+      - populatedb=false
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
@@ -75,71 +77,73 @@ services:
       - 'appointments-dbdata:/var/opt/mssql'
 
             
-  # profilesservice:
-  #   image: ${DOCKER_REGISTRY-}profilesservice
-  #   container_name: ProfilesService
-  #   depends_on:
-  #     - profilesdb
-  #     - rabbitmq
-  #   ports:
-  #     - "5002:5002" 
-  #   build:
-  #     context: .
-  #     dockerfile: ProfilesService.Dockerfile
-  #   environment:
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=https://+:443;http://+:5002
-  #     - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-  #     - IdentityPath=http://identityserver:80
-  #     - IdentityPathOuter=http://localhost:5000
-  #     - RabbitMq:Host=rabbitmq
-  #     - RabbitMq:Username=rmuser
-  #     - RabbitMq:Password=rmpassword
+  profilesservice:
+    image: ${DOCKER_REGISTRY-}profilesservice
+    container_name: ProfilesService
+    depends_on:
+      - profilesdb
+      - rabbitmq
+    ports:
+      - "5002:5002" 
+    build:
+      context: .
+      dockerfile: ProfilesService.Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:5002
+      - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
 
-  # profilesdb:
-  #   image: "mcr.microsoft.com/mssql/server:2022-latest"
-  #   container_name: ProfilesDb
-  #   ports:
-  #     - "1435:1433"
-  #   environment:
-  #     - ACCEPT_EULA=y
-  #     - MSSQL_SA_PASSWORD=InnoClinic123$
-  #   volumes:
-  #     - 'profiles-dbdata:/var/opt/mssql'
+  profilesdb:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: ProfilesDb
+    ports:
+      - "1435:1433"
+    environment:
+      - ACCEPT_EULA=y
+      - MSSQL_SA_PASSWORD=InnoClinic123$
+    volumes:
+      - 'profiles-dbdata:/var/opt/mssql'
 
 
 
-  # officesservice:
-  #   image: ${DOCKER_REGISTRY-}officesservice
-  #   container_name: OfficesService
-  #   depends_on:
-  #     - officesdb
-  #     - rabbitmq
-  #   ports:
-  #     - "5001:5001" 
-  #   build:
-  #     context: .
-  #     dockerfile: OfficesService.Dockerfile
-  #   environment:
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=https://+:443;http://+:5001
-  #     - DbConnection=Server=OfficesDb,1433;Database=InnoClinicOffices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-  #     - IdentityPath=http://identityserver:80
-  #     - IdentityPathOuter=http://localhost:5000
-  #     - RabbitMq:Host=rabbitmq
-  #     - RabbitMq:Username=rmuser
-  #     - RabbitMq:Password=rmpassword
+  officesservice:
+    image: ${DOCKER_REGISTRY-}officesservice
+    container_name: OfficesService
+    depends_on:
+      - officesdb
+      - rabbitmq
+    ports:
+      - "5001:5001" 
+    build:
+      context: .
+      dockerfile: OfficesService.Dockerfile
+    command:
+      - populatedb=false
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:5001
+      - DbConnection=Server=OfficesDb,1433;Database=InnoClinicOffices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
 
-  # officesdb:
-  #   image: "mcr.microsoft.com/mssql/server:2022-latest"
-  #   container_name: OfficesDb
-  #   ports:
-  #     - "1434:1433"
-  #   environment:
-  #     - ACCEPT_EULA=y
-  #     - MSSQL_SA_PASSWORD=InnoClinic123$
-  #   volumes:
-  #     - 'offices-dbdata:/var/opt/mssql'
+  officesdb:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: OfficesDb
+    ports:
+      - "1434:1433"
+    environment:
+      - ACCEPT_EULA=y
+      - MSSQL_SA_PASSWORD=InnoClinic123$
+    volumes:
+      - 'offices-dbdata:/var/opt/mssql'
 
 
 

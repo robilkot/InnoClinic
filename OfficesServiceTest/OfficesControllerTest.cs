@@ -73,7 +73,7 @@ namespace OfficesServiceTest
             var testOffices = GetTestOffices();
 
             repoMock.Setup(repo => repo.Get(It.IsAny<Guid>()))
-                .Returns<Guid>((id) => Task.FromResult(testOffices.FirstOrDefault(o => o.Id == id)) ?? throw new Exception("test exception"));
+                .Returns<Guid>((id) => Task.FromResult(testOffices.FirstOrDefault(o => o.Id == id)) ?? throw new Exception("Test"));
             var config = new MapperConfiguration(opts =>
             {
                 opts.AddProfile(new OfficesControllerProfile());
