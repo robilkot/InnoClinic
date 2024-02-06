@@ -1,6 +1,5 @@
 using AutoMapper;
-using CommonData.Exceptions;
-using Microsoft.AspNetCore.Authorization;
+using CommonData.Constants;
 using Microsoft.AspNetCore.Mvc;
 using ProfilesService.Data.Models;
 using ProfilesService.Models;
@@ -22,14 +21,16 @@ namespace ProfilesService.Controllers
         }
 
         [HttpGet]
-        [Authorize("patients.edit")]
         public async Task<ActionResult<IEnumerable<ClientPatientModel>>> GetPatients([FromQuery] int pageNumber, [FromQuery] int pageSize, [FromQuery] string? name)
         {
-            IEnumerable<ClientPatientModel> clientPatients;
+            if (!User.IsInRole(Roles.Receptionist) && !User.IsInRole(Roles.Doctor))
+            {
+                return Forbid();
+            }
 
             var dbPatients = await _dbService.GetPatients(pageNumber, pageSize, name);
 
-            clientPatients = _mapper.Map<IEnumerable<ClientPatientModel>>(dbPatients);
+            var clientPatients = _mapper.Map<IEnumerable<ClientPatientModel>>(dbPatients);
 
             return new(clientPatients);
         }
@@ -39,9 +40,9 @@ namespace ProfilesService.Controllers
         {
             var dbPatient = await _dbService.GetPatient(id);
 
-            if (!User.IsInRole("receptionist") && !CurrentUserIsPatient(dbPatient.AccountId))
+            if (!User.IsInRole(Roles.Receptionist) && !User.IsInRole(Roles.Doctor) && !CurrentUserIsPatient(dbPatient.AccountId))
             {
-                throw new InnoClinicException("Forbidden", 403);
+                return Forbid();
             }
 
             var clientPatient = _mapper.Map<ClientPatientModel>(dbPatient);
@@ -50,20 +51,28 @@ namespace ProfilesService.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        [Authorize("patients.edit")]
         public async Task<ActionResult> DeletePatient(Guid id)
         {
+            if (!User.IsInRole(Roles.Receptionist))
+            {
+                return Forbid();
+            }
+
             await _dbService.DeletePatient(id);
 
-            Log.Information("Patient deleted => {@dbPatient}", id);
+            Log.Information("Patient deleted: {@patientId}", id);
 
             return NoContent();
         }
 
         [HttpPost]
-        [Authorize("patients.edit")]
         public async Task<ActionResult<ClientPatientModel>> CreatePatient([FromBody] ClientPatientModel patient)
         {
+            if (!User.IsInRole(Roles.Receptionist))
+            {
+                return Forbid();
+            }
+
             var dbPatient = _mapper.Map<DbPatientModel>(patient);
 
             var addedPatient = await _dbService.AddPatient(dbPatient);
@@ -78,27 +87,30 @@ namespace ProfilesService.Controllers
         [HttpPut]
         public async Task<ActionResult<ClientPatientModel>> UpdatePatient([FromBody] ClientPatientModel patient)
         {
+            if (!User.IsInRole(Roles.Receptionist))
+            {
+                return Forbid();
+            }
+
             var dbPatient = _mapper.Map<DbPatientModel>(patient);
 
-            if (User.IsInRole("receptionist") || CurrentUserIsPatient(dbPatient.AccountId))
+            if (!User.IsInRole(Roles.Receptionist) && !CurrentUserIsPatient(dbPatient.AccountId))
             {
-                var updatedPatient = await _dbService.UpdatePatient(dbPatient);
-
-                Log.Information("Patient updated => {@updatedPatient}", updatedPatient);
-
-                var clientPatient = _mapper.Map<ClientPatientModel>(updatedPatient);
-
-                return clientPatient;
+                return Forbid();
             }
-            else
-            {
-                throw new InnoClinicException("Forbidden", 403);
-            }
+        
+            var updatedPatient = await _dbService.UpdatePatient(dbPatient);
+
+            Log.Information("Patient updated: {@updatedPatient}", (updatedPatient.Id, updatedPatient.LastName));
+
+            var clientPatient = _mapper.Map<ClientPatientModel>(updatedPatient);
+
+            return clientPatient;
         }
 
         private bool CurrentUserIsPatient(Guid patientAccountId)
         {
-            return User.IsInRole("patient") && patientAccountId.ToString() == User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value;
+            return User.IsInRole(Roles.Patient) && patientAccountId.ToString() == User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value;
         }
     }
 }

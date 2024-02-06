@@ -26,7 +26,7 @@ namespace IdentityServer.Core.Data
                 PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
 
                 AllowOfflineAccess = true,
-                AllowedScopes = { "offices.edit" }
+                AllowedScopes = { "offices" }
             },
 
             new Client
@@ -49,7 +49,7 @@ namespace IdentityServer.Core.Data
                 PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
 
                 AllowOfflineAccess = true,
-                AllowedScopes = { "patients.edit", "receptionists.edit", "doctors.edit" }
+                AllowedScopes = { "profiles" }
             },
 
             new Client
@@ -70,7 +70,7 @@ namespace IdentityServer.Core.Data
                 PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
 
                 AllowOfflineAccess = true,
-                AllowedScopes = { "services.edit", "specializations.edit" }
+                AllowedScopes = { "services" }
             },
 
             new Client
@@ -91,7 +91,28 @@ namespace IdentityServer.Core.Data
                 PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
 
                 AllowOfflineAccess = true,
-                AllowedScopes = { "appointments.edit" }
+                AllowedScopes = { "appointments" }
+            },
+
+            new Client
+            {
+                ClientId = "documentsService",
+                ClientSecrets = { new Secret("documentsService".Sha256()) },
+
+                AllowedGrantTypes = { GrantType.AuthorizationCode },
+
+                RedirectUris = {
+                    "https://localhost:44300/signin-oidc",
+                    "http://localhost:5005/appointments",
+                    "http://localhost:5005/swagger/oauth2-redirect.html",
+                    "http://127.0.0.1:5005/swagger/oauth2-redirect.html"
+                },
+
+                FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
+                PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
+
+                AllowOfflineAccess = true,
+                AllowedScopes = { "documents" }
             },
         };
 
@@ -111,13 +132,11 @@ namespace IdentityServer.Core.Data
 
         public static IEnumerable<ApiScope> ApiScopes = new List<ApiScope>
         {
-            new ApiScope("offices.edit"),
-            new ApiScope("patients.edit"),
-            new ApiScope("doctors.edit"),
-            new ApiScope("receptionists.edit"),
-            new ApiScope("services.edit"),
-            new ApiScope("specializations.edit"),
-            new ApiScope("appointments.edit"),
+            new ApiScope("offices"),
+            new ApiScope("profiles"),
+            new ApiScope("services"),
+            new ApiScope("appointments"),
+            new ApiScope("documents"),
         };
 
         public static IEnumerable<IdentityRole> IdentityRoles =>

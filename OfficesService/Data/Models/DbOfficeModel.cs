@@ -12,7 +12,5 @@ namespace OfficesService.Data.Models
         public required string RegistryPhoneNumber { get; set; }
         public bool Active { get; set; }
         public Guid? ImageId { get; set; }
-        // Image is redundant
-        public byte[]? Image {  get; set; }
     }
 }

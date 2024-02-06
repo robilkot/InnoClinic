@@ -1,8 +1,8 @@
+using CommonData.Constants;
 using CommonData.Messages;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OfficesService.Consumers;
@@ -22,8 +22,6 @@ var connectionString = Environment.GetEnvironmentVariable("DbConnection") ?? bui
 var rmHost = Environment.GetEnvironmentVariable("RabbitMq:Host") ?? builder.Configuration["RabbitMq:Host"];
 var rmUsername = Environment.GetEnvironmentVariable("RabbitMq:Username") ?? builder.Configuration.GetValue("RabbitMq:Username", "rmuser");
 var rmPassword = Environment.GetEnvironmentVariable("RabbitMq:Password") ?? builder.Configuration.GetValue("RabbitMq:Password", "rmpassword");
-
-// Add services to the container.
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -89,9 +87,7 @@ builder.Services.AddSwaggerGen(options =>
                 AuthorizationUrl = new Uri($"{authorityStringOuter}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
                 Scopes = new Dictionary<string, string> {
-                    { "doctors.edit", "Edit doctors" },
-                    { "patients.edit", "Edit patients" },
-                    { "receptionists.edit", "Edit receptionists" }
+                    { "profiles", "Access profiles" }
                 }
             }
         },
@@ -99,7 +95,7 @@ builder.Services.AddSwaggerGen(options =>
         In = ParameterLocation.Header,
     });
 
-options.OperationFilter<SecurityRequirementsOperationFilter>();
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
 builder.Services.AddAuthentication(options =>
@@ -132,16 +128,9 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("doctors.edit", policy =>
-        policy.RequireClaim("scope", "doctors.edit"));
-
-    options.AddPolicy("patients.edit", policy =>
-        policy.RequireClaim("scope", "patients.edit"));
-
-    options.AddPolicy("receptionists.edit", policy =>
-        policy.RequireClaim("scope", "receptionists.edit"));
-});
+    options.AddPolicy("receptionists", policy => 
+        policy.RequireRole(Roles.Receptionist))
+);
 
 builder.Services.AddControllers();
 

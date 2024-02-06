@@ -11,6 +11,7 @@ namespace ServicesService.Presentation.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize("receptionists")]
     public class SpecializationsController : ControllerBase
     {
         private readonly ISpecializationDBService _dbService;
@@ -24,8 +25,14 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ClientSpecializationModel>>> GetSpecializations([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+
             var dbSpecs = await _dbService.Get(pageNumber, pageSize);
 
             var clientSpecs = _mapper.Map<IEnumerable<ClientSpecializationModel>>(dbSpecs);
@@ -34,6 +41,7 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpGet("{id:Guid}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ClientSpecializationModel>> GetSpecialization(Guid id)
         {
             var dbSpec = await _dbService.Get(id);
@@ -44,18 +52,16 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> DeleteSpecialization(Guid id)
         {
             await _dbService.Delete(id);
 
-            Log.Information("Specialization deleted => {@dbSpec}", id);
+            Log.Information("Specialization deleted: {@dbSpec}", id);
 
             return NoContent();
         }
 
         [HttpPost]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> CreateService([FromBody] ClientSpecializationModel spec)
         {
             var result = await _validator.ValidateAsync(spec);
@@ -71,7 +77,7 @@ namespace ServicesService.Presentation.Controllers
 
             var addedSpec = await _dbService.Add(dbSpec);
 
-            Log.Information("Specialization created => {@addedSpec}", addedSpec.Name);
+            Log.Information("Specialization created: {@addedSpec}", (addedSpec.Id, addedSpec.Name));
 
             var clientSpec = _mapper.Map<ClientSpecializationModel>(addedSpec);
 
@@ -79,7 +85,6 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpPut]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientSpecializationModel>> UpdateService([FromBody] ClientSpecializationModel spec)
         {
             var result = await _validator.ValidateAsync(spec);
@@ -95,7 +100,7 @@ namespace ServicesService.Presentation.Controllers
 
             var updatedSpec = await _dbService.Update(dbSpec);
 
-            Log.Information("Specialization updated => {@updatedSpec}", updatedSpec.Name);
+            Log.Information("Specialization updated: {@updatedSpec}", (updatedSpec.Id, updatedSpec.Name));
 
             var clientSpec = _mapper.Map<ClientSpecializationModel>(updatedSpec);
 

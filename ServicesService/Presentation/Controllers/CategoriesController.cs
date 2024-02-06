@@ -9,6 +9,7 @@ namespace ServicesService.Presentation.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize("receptionists")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryDBService _dbService;
@@ -20,18 +21,23 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ClientCategoryModel>>> GetCategories([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
-            IEnumerable<ClientCategoryModel> clientServices;
+            if(pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
 
             var dbServices = await _dbService.Get(pageNumber, pageSize);
 
-            clientServices = _mapper.Map<IEnumerable<ClientCategoryModel>>(dbServices);
+            var clientServices = _mapper.Map<IEnumerable<ClientCategoryModel>>(dbServices);
 
             return new(clientServices);
         }
 
         [HttpGet("{id:Guid}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ClientCategoryModel>> GetService(Guid id)
         {
             var dbService = await _dbService.Get(id);
@@ -42,25 +48,23 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        [Authorize("services.edit")]
         public async Task<ActionResult> DeleteService(Guid id)
         {
             await _dbService.Delete(id);
 
-            Log.Information("Category deleted => {@dbService}", id);
+            Log.Information("Category deleted: {@dbService}", id);
 
             return NoContent();
         }
 
         [HttpPost]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientCategoryModel>> CreateService([FromBody] ClientCategoryModel service)
         {
             var dbPatient = _mapper.Map<Category>(service);
 
             var addedService = await _dbService.Add(dbPatient);
 
-            Log.Information("Category created => {@addedService}", addedService.Name);
+            Log.Information("Category created: {@addedService}", (addedService.Id, addedService.Name));
 
             var clientService = _mapper.Map<ClientCategoryModel>(addedService);
 
@@ -68,14 +72,13 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpPut]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientCategoryModel>> UpdateService([FromBody] ClientCategoryModel service)
         {
             var dbPatient = _mapper.Map<Category>(service);
 
             var updatedService = await _dbService.Update(dbPatient);
 
-            Log.Information("Category updated => {@updatedService}", updatedService.Name);
+            Log.Information("Category updated: {@updatedService}", (updatedService.Id, updatedService.Name));
 
             var clientService = _mapper.Map<ClientCategoryModel>(updatedService);
 

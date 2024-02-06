@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
 		AppointmentsService.Dockerfile = AppointmentsService.Dockerfile
+		DocumentsService.Dockerfile = DocumentsService.Dockerfile
 		OfficesService.Dockerfile = OfficesService.Dockerfile
 		ProfilesService.Dockerfile = ProfilesService.Dockerfile
 		ServicesService.Dockerfile = ServicesService.Dockerfile
@@ -28,7 +29,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppointmentsService", "AppointmentsService\AppointmentsService.csproj", "{672C0AF1-9388-4B85-A10A-3FF6DB7D0B49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InnoClinicClient", "InnoClinicClient\InnoClinicClient.csproj", "{BB2AD0CA-1F99-44A5-9A58-AF56740B88B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InnoClinicClient", "InnoClinicClient\InnoClinicClient.csproj", "{BB2AD0CA-1F99-44A5-9A58-AF56740B88B4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentsService", "DocumentsService\DocumentsService.csproj", "{D2C39C95-EB49-4267-997E-A8091BA27971}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway", "Gateway\Gateway.csproj", "{0D0A04AF-D459-4C44-A026-7E645081239F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +79,14 @@ Global
 		{BB2AD0CA-1F99-44A5-9A58-AF56740B88B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB2AD0CA-1F99-44A5-9A58-AF56740B88B4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BB2AD0CA-1F99-44A5-9A58-AF56740B88B4}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{D2C39C95-EB49-4267-997E-A8091BA27971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2C39C95-EB49-4267-997E-A8091BA27971}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2C39C95-EB49-4267-997E-A8091BA27971}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2C39C95-EB49-4267-997E-A8091BA27971}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D0A04AF-D459-4C44-A026-7E645081239F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D0A04AF-D459-4C44-A026-7E645081239F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D0A04AF-D459-4C44-A026-7E645081239F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D0A04AF-D459-4C44-A026-7E645081239F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

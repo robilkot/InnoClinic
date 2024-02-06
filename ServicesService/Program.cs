@@ -1,3 +1,4 @@
+using CommonData.Constants;
 using FluentValidation;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -89,7 +90,7 @@ builder.Services.AddSwaggerGen(options =>
                 AuthorizationUrl = new Uri($"{authorityStringOuter}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
                 Scopes = new Dictionary<string, string> {
-                    { "services.edit", "Edit services" },
+                    { "services", "Access services, categories and specializations" },
                 }
             }
         },
@@ -131,8 +132,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("services.edit", policy =>
-        policy.RequireClaim("scope", "services.edit"));
+    options.AddPolicy("receptionists", policy =>
+        policy.RequireRole(Roles.Receptionist));
 });
 
 builder.Services.AddControllers();

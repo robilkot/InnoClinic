@@ -1,4 +1,5 @@
 using AutoMapper;
+using CommonData.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfilesService.Data.Models;
@@ -10,6 +11,7 @@ namespace ProfilesService.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize("receptionists")]
     public class ReceptionistsController : ControllerBase
     {
         private readonly DbService _dbService;
@@ -21,17 +23,19 @@ namespace ProfilesService.Controllers
         }
 
         [HttpGet]
-        [Authorize("receptionists.edit")]
         public async Task<ActionResult<IEnumerable<ClientReceptionistModel>>> GetReceptionists([FromQuery] int pageNumber,
                                                                                                [FromQuery] int pageSize,
                                                                                                [FromQuery] IEnumerable<Guid> officesId,
                                                                                                [FromQuery] string? name)
         {
-            IEnumerable<ClientReceptionistModel> clientReceptionists;
+            if(!User.IsInRole(Roles.Receptionist))
+            {
+                return Forbid();
+            }
 
             var dbReceptionists = await _dbService.GetReceptionists(pageNumber, pageSize, officesId, name);
 
-            clientReceptionists = _mapper.Map<IEnumerable<ClientReceptionistModel>>(dbReceptionists);
+            var clientReceptionists = _mapper.Map<IEnumerable<ClientReceptionistModel>>(dbReceptionists);
 
             return new(clientReceptionists);
         }
@@ -47,25 +51,23 @@ namespace ProfilesService.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        [Authorize("receptionists.edit")]
         public async Task<ActionResult> DeleteReceptionist(Guid id)
         {
             await _dbService.DeleteReceptionist(id);
 
-            Log.Information("Receptionist deleted => {@dbReceptionist}", id);
+            Log.Information("Receptionist deleted: {@dbReceptionist}", id);
 
             return NoContent();
         }
 
         [HttpPost]
-        [Authorize("receptionists.edit")]
         public async Task<ActionResult<ClientReceptionistModel>> CreateReceptionist([FromBody] ClientReceptionistModel receptionist)
         {
             var dbReceptionist = _mapper.Map<DbReceptionistModel>(receptionist);
 
             var addedReceptionist = await _dbService.AddReceptionist(dbReceptionist);
 
-            Log.Information("Receptionist created => {@addedReceptionist}", addedReceptionist);
+            Log.Information("Receptionist created: {@addedReceptionist}", (addedReceptionist.Id, addedReceptionist.LastName));
 
             var clientReceptionist = _mapper.Map<ClientReceptionistModel>(addedReceptionist);
 
@@ -79,12 +81,11 @@ namespace ProfilesService.Controllers
 
             var updatedReceptionist = await _dbService.UpdateReceptionist(dbReceptionist);
 
-            Log.Information("Receptionist updated => {@updatedReceptionist}", updatedReceptionist);
+            Log.Information("Receptionist updated: {@updatedReceptionist}", (updatedReceptionist.Id, updatedReceptionist.LastName));
 
             var clientReceptionist = _mapper.Map<ClientReceptionistModel>(updatedReceptionist);
 
             return clientReceptionist;
-
         }
     }
 }

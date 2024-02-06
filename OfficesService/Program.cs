@@ -72,7 +72,7 @@ builder.Services.AddSwaggerGen(options =>
             {
                 AuthorizationUrl = new Uri($"{authorityStringOuter}/connect/authorize"),
                 TokenUrl = new Uri($"{authorityStringOuter}/connect/token"),
-                Scopes = new Dictionary<string, string> { { "offices.edit", "Edit offices" } }
+                Scopes = new Dictionary<string, string> { { "offices", "Access offices" } }
             }
         },
         Scheme = JwtBearerDefaults.AuthenticationScheme,
@@ -111,11 +111,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("offices.edit", policy =>
-        policy.RequireClaim("scope", "offices.edit"));
-});
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 

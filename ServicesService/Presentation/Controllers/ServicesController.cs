@@ -12,6 +12,7 @@ namespace ServicesService.Presentation.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize("receptionists")]
     public class ServicesController : ControllerBase
     {
         private readonly IServiceDBService _dbService;
@@ -25,18 +26,23 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ClientServiceModel>>> GetServices([FromQuery] int pageNumber, [FromQuery] int pageSize, [FromQuery] IEnumerable<Guid>? categories)
         {
-            IEnumerable<ClientServiceModel> clientServices;
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
 
             var dbServices = await _dbService.Get(pageNumber, pageSize, categories);
 
-            clientServices = _mapper.Map<IEnumerable<ClientServiceModel>>(dbServices);
+            var clientServices = _mapper.Map<IEnumerable<ClientServiceModel>>(dbServices);
 
             return new(clientServices);
         }
 
         [HttpGet("{id:Guid}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ClientServiceModel>> GetService(Guid id)
         {
             var dbService = await _dbService.Get(id);
@@ -47,18 +53,16 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientServiceModel>> DeleteService(Guid id)
         {
             await _dbService.Delete(id);
 
-            Log.Information("Service deleted => {@dbService}", id);
+            Log.Information("Service deleted: {@dbService}", id);
 
             return NoContent();
         }
 
         [HttpPost]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientServiceModel>> CreateService([FromBody] ClientServiceModel service)
         {
             var result = await _validator.ValidateAsync(service);
@@ -74,7 +78,7 @@ namespace ServicesService.Presentation.Controllers
 
             var addedService = await _dbService.Add(dbPatient);
 
-            Log.Information("Service created => {@addedService}", addedService);
+            Log.Information("Service created: {@addedService}", (addedService.Id, addedService.Name));
 
             var clientService = _mapper.Map<ClientServiceModel>(addedService);
 
@@ -82,7 +86,6 @@ namespace ServicesService.Presentation.Controllers
         }
 
         [HttpPut]
-        [Authorize("services.edit")]
         public async Task<ActionResult<ClientServiceModel>> UpdateService([FromBody] ClientServiceModel service)
         {
             var result = await _validator.ValidateAsync(service);
@@ -98,7 +101,7 @@ namespace ServicesService.Presentation.Controllers
 
             var updatedService = await _dbService.Update(dbPatient);
 
-            Log.Information("Service updated => {@updatedService}", updatedService);
+            Log.Information("Service updated: {@updatedService}", (updatedService.Id, updatedService.Name));
 
             var clientService = _mapper.Map<ClientServiceModel>(updatedService);
 

@@ -17,6 +17,5 @@ namespace OfficesService.Models
         [Required]
         public bool Active { get; set; }
         public Guid? ImageId { get; set; }
-        public byte[]? Image { get; set; }
     }
 }
