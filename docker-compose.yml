@@ -50,13 +50,13 @@ services:
     depends_on:
       - appointmentsdb
     ports:
-      - "5004:5004" 
+      - "5004:80" 
     build:
       context: .
       dockerfile: AppointmentsService.Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:5004
+      - ASPNETCORE_URLS=https://+:443;http://+:80
       - DbConnection:User ID=InnoClinic;Password=InnoClinic123$;Host=AppointmentsDb;Port=5432;Database=InnoClinicAppointments;Pooling=true;Connection Lifetime=0;
       - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
@@ -84,13 +84,13 @@ services:
       - profilesdb
       - rabbitmq
     ports:
-      - "5002:5002" 
+      - "5002:80" 
     build:
       context: .
       dockerfile: ProfilesService.Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:5002
+      - ASPNETCORE_URLS=https://+:443;http://+:80
       - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
       - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
@@ -118,7 +118,7 @@ services:
       - officesdb
       - rabbitmq
     ports:
-      - "5001:5001" 
+      - "5001:80" 
     build:
       context: .
       dockerfile: OfficesService.Dockerfile
@@ -126,7 +126,7 @@ services:
       - populatedb=false
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:5001
+      - ASPNETCORE_URLS=https://+:443;http://+:80
       - DbConnection=Server=OfficesDb,1433;Database=InnoClinicOffices;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
       - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
@@ -146,6 +146,25 @@ services:
       - 'offices-dbdata:/var/opt/mssql'
 
 
+  documentsservice:
+    image: ${DOCKER_REGISTRY-}documentsservice
+    container_name: DocumentsService
+    depends_on:
+      - mongo
+    ports:
+      - "5005:80" 
+    build:
+      context: .
+      dockerfile: DocumentsService.Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - DbConnection:mongodb://root:example@mongo:27017
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
+      - RabbitMq:Host=rabbitmq
+      - RabbitMq:Username=rmuser
+      - RabbitMq:Password=rmpassword
 
   servicesservice:
     image: ${DOCKER_REGISTRY-}servicesservice
@@ -153,13 +172,13 @@ services:
     depends_on:
       - mongo
     ports:
-      - "5003:5003" 
+      - "5003:80" 
     build:
       context: .
       dockerfile: ServicesService.Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:5003
+      - ASPNETCORE_URLS=https://+:443;http://+:80
       - DbConnection:mongodb://root:example@mongo:27017
       - IdentityPath=http://identityserver:80
       - IdentityPathOuter=http://localhost:5000
