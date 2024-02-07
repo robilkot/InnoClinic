@@ -1,9 +1,14 @@
-﻿using IdentityServer4.EntityFramework.DbContexts;
+﻿using IdentityModel;
+using IdentityServer.Core.Models;
+using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Linq;
+using System.Security.Claims;
 
 namespace IdentityServer.Core.Data
 {
@@ -58,6 +63,35 @@ namespace IdentityServer.Core.Data
 
                 context.SaveChanges();
             }
+
+            //var services = new ServiceCollection();
+            //services.AddLogging();
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //   options.UseSqlServer(Environment.GetEnvironmentVariable("DbConnection")));
+
+            //services.AddIdentity<ApplicationUser, IdentityRole>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
+
+            //using (var serviceProvider = services.BuildServiceProvider())
+            //{
+            //    using (var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            //    {
+            //        var dcontext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+            //        dcontext.Database.Migrate();
+
+            //        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            //        foreach (var role in Config.IdentityRoles)
+            //        {
+            //            var foundRole = roleMgr.FindByNameAsync(role.Name);
+
+            //            if (foundRole == null)
+            //            {
+            //                var result = roleMgr.CreateAsync(role);
+            //            }
+            //        }
+            //    }
+            //}
         }
     }
 }

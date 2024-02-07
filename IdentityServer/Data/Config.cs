@@ -10,6 +10,29 @@ namespace IdentityServer.Core.Data
         {
             new Client
             {
+                ClientId = "gatewayApi",
+                ClientSecrets = { new Secret("gatewayApi".Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.Code,
+                // todo: this is not great
+                RequirePkce = false,
+
+                RedirectUris = {
+                    "https://localhost:44300/signin-oidc",
+                    "http://localhost:5012/",
+                    "http://localhost:5012/swagger/oauth2-redirect.html",
+                    "http://127.0.0.1:5012/swagger/oauth2-redirect.html"
+                },
+
+                FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
+                PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
+
+                AllowOfflineAccess = true,
+                AllowedScopes = { "gateway", "offices", "profiles", "appointments", "documents", "services" }
+            },
+
+            new Client
+            {
                 ClientId = "officesService",
                 ClientSecrets = { new Secret("officesService".Sha256()) },
 

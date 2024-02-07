@@ -1,0 +1,303 @@
+{
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5012"
+  },
+  "Routes": [
+    // offices
+    {
+      "UpstreamPathTemplate": "/api/offices",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/offices",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "officesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "offices"
+    },
+    {
+      "UpstreamPathTemplate": "/api/offices/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/offices/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "officesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "offices"
+    },
+    // profiles
+    {
+      "UpstreamPathTemplate": "/api/doctors",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/doctors",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "profilesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "profiles"
+    },
+    {
+      "UpstreamPathTemplate": "/api/doctors/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/doctors/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "profilesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "profiles"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/patients",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/patients",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "profilesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "profiles"
+    },
+    {
+      "UpstreamPathTemplate": "/api/patients/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/patients/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "profilesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "profiles"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/receptionists",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/receptionists",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "profilesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "profiles"
+    },
+    {
+      "UpstreamPathTemplate": "/api/receptionists/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/receptionists/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "profilesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "profiles"
+    },
+
+    // Services
+    {
+      "UpstreamPathTemplate": "/api/services",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/services",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "servicesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "services"
+    },
+    {
+      "UpstreamPathTemplate": "/api/services/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/services/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "servicesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "services"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/categories",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/categories",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "servicesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "services"
+    },
+    {
+      "UpstreamPathTemplate": "/api/categories/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/categories/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "servicesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "services"
+    },
+
+    {
+      "UpstreamPathTemplate": "/api/specializations",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/specializations",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "servicesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "services"
+    },
+    {
+      "UpstreamPathTemplate": "/api/specializations/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/specializations/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "servicesservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "services"
+    },
+    // Appointments
+    {
+      "UpstreamPathTemplate": "/api/appointments",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/appointments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "appointmentsservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "appointments"
+    },
+    {
+      "UpstreamPathTemplate": "/api/appointments/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/appointments/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "appointmentsservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "appointments"
+    },
+    // Documents
+    {
+      "UpstreamPathTemplate": "/api/documents",
+      "UpstreamHttpMethod": [ "Get", "Put", "Post" ],
+      "DownstreamPathTemplate": "/documents",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "documentsservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "documents"
+    },
+    {
+      "UpstreamPathTemplate": "/api/documents/{id}",
+      "UpstreamHttpMethod": [ "Get", "Delete" ],
+      "DownstreamPathTemplate": "/documents/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "documentsservice",
+          "Port": 80
+        }
+      ],
+      "SwaggerKey": "documents"
+    }
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "offices",
+      "Config": [
+        {
+          "Name": "Offices API",
+          "Version": "v1",
+          "Url": "http://officesservice:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "profiles",
+      "Config": [
+        {
+          "Name": "Profiles API",
+          "Version": "v1",
+          "Url": "http://profilesservice:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "services",
+      "Config": [
+        {
+          "Name": "Services API",
+          "Version": "v1",
+          "Url": "http://servicesservice:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "appointments",
+      "Config": [
+        {
+          "Name": "Appointments API",
+          "Version": "v1",
+          "Url": "http://appointmentsservice:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "documents",
+      "Config": [
+        {
+          "Name": "Documents API",
+          "Version": "v1",
+          "Url": "http://documentsservice:80/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ]
+}

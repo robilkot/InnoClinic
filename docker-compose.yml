@@ -1,19 +1,37 @@
 version: "3.9"
 
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    hostname: rabbitmq
-    container_name: RabbitMq
+  gateway:
+    image: ${DOCKER_REGISTRY-}gateway
+    hostname: gateway
+    container_name: Gateway
     environment:
-      - RABBITMQ_DEFAULT_USER=rmuser
-      - RABBITMQ_DEFAULT_PASS=rmpassword
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - IdentityPath=http://identityserver:80
+      - IdentityPathOuter=http://localhost:5000
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+    - ./Gateway/Configuration:/app/Configuration
     ports:
-      - 15672:15672
-      - 5672:5672
+      - 5012:80
+      - 5013:443
+    build:
+      context: .
+      dockerfile: Gateway/Dockerfile
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   hostname: rabbitmq
+  #   container_name: RabbitMq
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=rmuser
+  #     - RABBITMQ_DEFAULT_PASS=rmpassword
+  #     - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+  #   volumes:
+  #     - rabbitmq-data:/var/lib/rabbitmq
+  #   ports:
+  #     - 15672:15672
+  #     - 5672:5672
 
   identityserver:
     image: ${DOCKER_REGISTRY-}identityserver
@@ -26,7 +44,7 @@ services:
       context: .
       dockerfile: IdentityServer/Dockerfile
     command:
-      - populatedb=false
+      - populatedb=true
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
@@ -44,70 +62,69 @@ services:
       - 'identityserver-dbdata:/var/opt/mssql'
 
 
-  appointmentsservice:
-    image: ${DOCKER_REGISTRY-}appointmentsservice
-    container_name: AppointmentsService
-    depends_on:
-      - appointmentsdb
-    ports:
-      - "5004:80" 
-    build:
-      context: .
-      dockerfile: AppointmentsService.Dockerfile
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - DbConnection:User ID=InnoClinic;Password=InnoClinic123$;Host=AppointmentsDb;Port=5432;Database=InnoClinicAppointments;Pooling=true;Connection Lifetime=0;
-      - IdentityPath=http://identityserver:80
-      - IdentityPathOuter=http://localhost:5000
-      - RabbitMq:Host=rabbitmq
-      - RabbitMq:Username=rmuser
-      - RabbitMq:Password=rmpassword
+  # appointmentsservice:
+  #   image: ${DOCKER_REGISTRY-}appointmentsservice
+  #   container_name: AppointmentsService
+  #   depends_on:
+  #     - appointmentsdb
+  #   ports:
+  #     - "5004:80" 
+  #   build:
+  #     context: .
+  #     dockerfile: AppointmentsService.Dockerfile
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=https://+:443;http://+:80
+  #     - DbConnection:User ID=InnoClinic;Password=InnoClinic123$;Host=AppointmentsDb;Port=5432;Database=InnoClinicAppointments;Pooling=true;Connection Lifetime=0;
+  #     - IdentityPath=http://identityserver:80
+  #     - IdentityPathOuter=http://localhost:5000
+  #     - RabbitMq:Host=rabbitmq
+  #     - RabbitMq:Username=rmuser
+  #     - RabbitMq:Password=rmpassword
 
-  appointmentsdb:
-    image: "postgres:latest"
-    container_name: AppointmentsDb
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: "InnoClinicAppointments"  
-      POSTGRES_PASSWORD: "InnoClinic123$"
-      POSTGRES_USER: "InnoClinic"
-    volumes:
-      - 'appointments-dbdata:/var/opt/mssql'
+  # appointmentsdb:
+  #   image: "postgres:latest"
+  #   container_name: AppointmentsDb
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_DB: "InnoClinicAppointments"  
+  #     POSTGRES_PASSWORD: "InnoClinic123$"
+  #     POSTGRES_USER: "InnoClinic"
+  #   volumes:
+  #     - 'appointments-dbdata:/var/opt/mssql'
 
             
-  profilesservice:
-    image: ${DOCKER_REGISTRY-}profilesservice
-    container_name: ProfilesService
-    depends_on:
-      - profilesdb
-      - rabbitmq
-    ports:
-      - "5002:80" 
-    build:
-      context: .
-      dockerfile: ProfilesService.Dockerfile
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
-      - IdentityPath=http://identityserver:80
-      - IdentityPathOuter=http://localhost:5000
-      - RabbitMq:Host=rabbitmq
-      - RabbitMq:Username=rmuser
-      - RabbitMq:Password=rmpassword
+  # profilesservice:
+  #   image: ${DOCKER_REGISTRY-}profilesservice
+  #   container_name: ProfilesService
+  #   depends_on:
+  #     - profilesdb
+  #   ports:
+  #     - "5002:80" 
+  #   build:
+  #     context: .
+  #     dockerfile: ProfilesService.Dockerfile
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=https://+:443;http://+:80
+  #     - DbConnection=Server=ProfilesDb,1433;Database=InnoClinicProfiles;MultipleActiveResultSets=true;TrustServerCertificate=True;User Id=SA;Password=InnoClinic123$;
+  #     - IdentityPath=http://identityserver:80
+  #     - IdentityPathOuter=http://localhost:5000
+  #     - RabbitMq:Host=rabbitmq
+  #     - RabbitMq:Username=rmuser
+  #     - RabbitMq:Password=rmpassword
 
-  profilesdb:
-    image: "mcr.microsoft.com/mssql/server:2022-latest"
-    container_name: ProfilesDb
-    ports:
-      - "1435:1433"
-    environment:
-      - ACCEPT_EULA=y
-      - MSSQL_SA_PASSWORD=InnoClinic123$
-    volumes:
-      - 'profiles-dbdata:/var/opt/mssql'
+  # profilesdb:
+  #   image: "mcr.microsoft.com/mssql/server:2022-latest"
+  #   container_name: ProfilesDb
+  #   ports:
+  #     - "1435:1433"
+  #   environment:
+  #     - ACCEPT_EULA=y
+  #     - MSSQL_SA_PASSWORD=InnoClinic123$
+  #   volumes:
+  #     - 'profiles-dbdata:/var/opt/mssql'
 
 
 
@@ -116,7 +133,6 @@ services:
     container_name: OfficesService
     depends_on:
       - officesdb
-      - rabbitmq
     ports:
       - "5001:80" 
     build:
@@ -146,56 +162,56 @@ services:
       - 'offices-dbdata:/var/opt/mssql'
 
 
-  documentsservice:
-    image: ${DOCKER_REGISTRY-}documentsservice
-    container_name: DocumentsService
-    depends_on:
-      - mongo
-    ports:
-      - "5005:80" 
-    build:
-      context: .
-      dockerfile: DocumentsService.Dockerfile
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - DbConnection:mongodb://root:example@mongo:27017
-      - IdentityPath=http://identityserver:80
-      - IdentityPathOuter=http://localhost:5000
-      - RabbitMq:Host=rabbitmq
-      - RabbitMq:Username=rmuser
-      - RabbitMq:Password=rmpassword
+  # documentsservice:
+  #   image: ${DOCKER_REGISTRY-}documentsservice
+  #   container_name: DocumentsService
+  #   depends_on:
+  #     - mongo
+  #   ports:
+  #     - "5005:80" 
+  #   build:
+  #     context: .
+  #     dockerfile: DocumentsService.Dockerfile
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=https://+:443;http://+:80
+  #     - DbConnection:mongodb://root:example@mongo:27017
+  #     - IdentityPath=http://identityserver:80
+  #     - IdentityPathOuter=http://localhost:5000
+  #     - RabbitMq:Host=rabbitmq
+  #     - RabbitMq:Username=rmuser
+  #     - RabbitMq:Password=rmpassword
 
-  servicesservice:
-    image: ${DOCKER_REGISTRY-}servicesservice
-    container_name: ServicesService
-    depends_on:
-      - mongo
-    ports:
-      - "5003:80" 
-    build:
-      context: .
-      dockerfile: ServicesService.Dockerfile
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - DbConnection:mongodb://root:example@mongo:27017
-      - IdentityPath=http://identityserver:80
-      - IdentityPathOuter=http://localhost:5000
-      - RabbitMq:Host=rabbitmq
-      - RabbitMq:Username=rmuser
-      - RabbitMq:Password=rmpassword
+  # servicesservice:
+  #   image: ${DOCKER_REGISTRY-}servicesservice
+  #   container_name: ServicesService
+  #   depends_on:
+  #     - mongo
+  #   ports:
+  #     - "5003:80" 
+  #   build:
+  #     context: .
+  #     dockerfile: ServicesService.Dockerfile
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=https://+:443;http://+:80
+  #     - DbConnection:mongodb://root:example@mongo:27017
+  #     - IdentityPath=http://identityserver:80
+  #     - IdentityPathOuter=http://localhost:5000
+  #     - RabbitMq:Host=rabbitmq
+  #     - RabbitMq:Username=rmuser
+  #     - RabbitMq:Password=rmpassword
 
-  mongo:
-    image: "mongodb/mongodb-community-server:latest"
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    volumes:
-      - 'services-dbdata:/var/opt/mssql'
+  # mongo:
+  #   image: "mongodb/mongodb-community-server:latest"
+  #   container_name: mongo
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #   volumes:
+  #     - 'services-dbdata:/var/opt/mssql'
 
   # mongo-express:
   #   image: mongo-express
@@ -218,6 +234,8 @@ services:
 
 
 volumes:
+  # gateway-data:
+  #   driver: local
   rabbitmq-data:
     driver: local
   offices-dbdata:
