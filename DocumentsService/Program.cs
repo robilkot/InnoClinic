@@ -1,5 +1,6 @@
 using DocumentsService.Domain.Interfaces;
 using DocumentsService.Infrastructure.Services;
+using DocumentsService.Middleware;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -136,6 +137,8 @@ if (app.Environment.IsDevelopment())
         setup.OAuthUsePkce();
     });
 }
+
+app.UseInnoClinicExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();

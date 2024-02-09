@@ -11,6 +11,7 @@ using ServicesService.Consumers;
 using ServicesService.Domain.Entities;
 using ServicesService.Domain.Interfaces;
 using ServicesService.Infrastructure.Services;
+using ServicesService.Middleware;
 using ServicesService.Presentation.Models;
 using ServicesService.Presentation.Models.Mappers;
 using ServicesService.Presentation.Models.Validators;
@@ -154,6 +155,8 @@ if (app.Environment.IsDevelopment())
         setup.OAuthUsePkce();
     });
 }
+
+app.UseInnoClinicExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();

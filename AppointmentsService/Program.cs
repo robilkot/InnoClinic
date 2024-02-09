@@ -154,6 +154,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseInnoClinicExceptionHandler();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

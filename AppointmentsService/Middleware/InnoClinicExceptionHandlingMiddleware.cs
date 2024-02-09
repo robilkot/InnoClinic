@@ -1,13 +1,13 @@
 ﻿using CommonData.Exceptions;
 using Serilog;
 
-namespace OfficesService.Middleware
+namespace AppointmentsService.Middleware
 {
 
-    public class ExceptionHandlingMiddleware
+    public class InnoClinicExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
-        public ExceptionHandlingMiddleware(RequestDelegate next)
+        public InnoClinicExceptionHandlingMiddleware(RequestDelegate next)
         {
             _next = next;
         }
@@ -33,16 +33,15 @@ namespace OfficesService.Middleware
                 {
                     Log.Error("Exception caught: {msg}", ex.Message);
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                    //await context.Response.WriteAsync($"Exception caught not from program-specific layer: {ex.Message}");
                 }
             }
         }
     }
     public static class ExceptionHandlingMiddlewareExtension
     {
-        public static IApplicationBuilder UseExceptionHandler(this IApplicationBuilder app)
+        public static IApplicationBuilder UseInnoClinicExceptionHandler(this IApplicationBuilder app)
         {
-            return app.UseMiddleware<ExceptionHandlingMiddleware>();
+            return app.UseMiddleware<InnoClinicExceptionHandlingMiddleware>();
         }
     }
 }

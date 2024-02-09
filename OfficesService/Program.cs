@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OfficesService.Consumers;
 using OfficesService.Data.Models;
+using OfficesService.Middleware;
 using OfficesService.Models.MapperProfiles;
 using OfficesService.Repository;
 using Serilog;
@@ -117,7 +118,9 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-if (bool.Parse(app.Configuration["populatedb"]!))
+bool.TryParse(app.Configuration["populatedb"], out bool populateDb);
+
+if (populateDb)
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<IRepository<DbOfficeModel>>();
@@ -139,7 +142,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-//app.UseExceptionHandler();
+app.UseInnoClinicExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();

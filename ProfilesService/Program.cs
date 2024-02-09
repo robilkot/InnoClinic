@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using OfficesService.Consumers;
 using ProfilesService.Consumers;
 using ProfilesService.Data;
+using ProfilesService.Middleware;
 using ProfilesService.Models.MapperProfiles;
 using ProfilesService.Services;
 using Serilog;
@@ -150,6 +151,8 @@ if (app.Environment.IsDevelopment())
         setup.OAuthUsePkce();
     });
 }
+
+app.UseInnoClinicExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();
