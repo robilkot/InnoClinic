@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:model="clr-namespace:InnoClinicClient.Models"
+             xmlns:viewmodel="clr-namespace:InnoClinicClient.ViewModel"
+             x:Class="InnoClinicClient.View.PatientProfilePage"
+             x:DataType="viewmodel:PatientProfileViewModel"
+             Title="{Binding Title}">
+    
+    <VerticalStackLayout HorizontalOptions="Center"
+                         Spacing="15">
+        <Image
+            Source="dotnet_bot.png"
+            Aspect="Center"
+            HeightRequest="250"
+            WidthRequest="250">
+            
+            <Image.Clip>
+                <EllipseGeometry 
+                    Center="125,125"
+                    RadiusX="125"
+                    RadiusY="125" />
+            </Image.Clip>
+        </Image>
+
+        <Label FontSize="Medium"
+               HorizontalOptions="Center">
+            <Label.Text>
+                <MultiBinding StringFormat="{}{0} {1} {2}">
+                    <Binding Path="Patient.FirstName" />
+                    <Binding Path="Patient.MiddleName" />
+                    <Binding Path="Patient.LastName" />
+                </MultiBinding>
+            </Label.Text>
+        </Label>
+        <Label FontSize="Default"
+               TextColor="Gray"
+               HorizontalOptions="Center">
+            <Label.Text>
+                <Binding Path="Patient.DateOfBirth"/>
+            </Label.Text>
+        </Label>
+    </VerticalStackLayout>
+</ContentPage>

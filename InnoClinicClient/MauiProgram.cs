@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using InnoClinicClient.Interfaces;
+using InnoClinicClient.Services;
+using InnoClinicClient.View;
+using InnoClinicClient.ViewModel;
+using Microsoft.Extensions.Logging;
 
 namespace InnoClinicClient
 {
@@ -18,6 +22,17 @@ namespace InnoClinicClient
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+
+            builder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddTransient<HttpClient>();
+
+            builder.Services.AddTransient<IAuthService, LocalAuthService>();
+            builder.Services.AddTransient<LoginViewModel>();
+
+            builder.Services.AddTransient<IPatientsService, LocalPatientsService>();
+
+            builder.Services.AddTransient<PatientProfileViewModel>();
+            builder.Services.AddTransient<PatientProfilePage>();
 
             return builder.Build();
         }

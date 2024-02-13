@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:model="clr-namespace:InnoClinicClient.Models"
+             xmlns:viewmodel="clr-namespace:InnoClinicClient.ViewModel"
+             x:Class="InnoClinicClient.View.LoginPage"
+             x:DataType="viewmodel:LoginViewModel"
+             Title="{Binding Title}">
+
+    <VerticalStackLayout Margin="25"
+                         Spacing="10"
+                         WidthRequest="400"
+                         HeightRequest="350"
+                         IsEnabled="{Binding IsNotBusy}">
+        
+        <Label Text="Sign in"
+               FontSize="Large"
+               HeightRequest="50"/>
+
+        <Label Text="Login"/>
+        <Entry Placeholder="Enter login"
+               Text="{Binding Login}"
+               />
+        
+        <Label Text="Password"/>
+        
+        <StackLayout Orientation="Horizontal"
+                     Spacing="8">
+            <Entry  x:Name="passwordEntry"
+                    HorizontalOptions="FillAndExpand" 
+                    IsPassword="True"
+                    Placeholder="Enter password"
+                    Text="{Binding Password}"/>
+            <Button Text="👁"
+                    BackgroundColor="DimGray"
+                    Clicked="TogglePasswordVisibility" />
+        </StackLayout>
+
+        <StackLayout Orientation="Horizontal">
+            <CheckBox x:Name="rememberLoginCheckBox"
+                      IsChecked="{Binding RememberLogin}">
+            </CheckBox>
+            <Label VerticalTextAlignment="Center"
+                   Text="Stay logged in">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="RememberLoginLabelTapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+        </StackLayout>
+
+        <Button Text="Login"
+                Command="{Binding LoginCommand}"/>
+    </VerticalStackLayout>
+</ContentPage>

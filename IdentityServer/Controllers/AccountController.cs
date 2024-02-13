@@ -47,7 +47,7 @@ namespace IdentityServer.Core.Controllers
 
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberLogin, lockoutOnFailure: true);
+                var result = await _signInManager.PasswordSignInAsync(model.Login, model.Password, model.RememberLogin, lockoutOnFailure: true);
 
                 if (result.Succeeded)
                 {
