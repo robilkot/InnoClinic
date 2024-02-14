@@ -1,6 +1,7 @@
 ﻿using InnoClinicClient.Helpers;
 using InnoClinicClient.Interfaces;
 using static InnoClinicClient.Constants.Urls;
+using static UIKit.UIGestureRecognizer;
 
 namespace InnoClinicClient.Services
 {
@@ -11,6 +12,11 @@ namespace InnoClinicClient.Services
         {
             _httpClient = httpClient;
             _httpClient.Timeout = TimeSpan.FromSeconds(4);
+        }
+
+        public Task<bool> IsAuthenticated()
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<bool> LoginAsync(string username, string password, bool rememberLogin)
@@ -32,9 +38,11 @@ namespace InnoClinicClient.Services
             }
         }
 
-        public Task<bool> LogoutAsync()
+        public async Task<bool> LogoutAsync()
         {
             throw new NotImplementedException();
+
+            //await JwtHandlerHelper.SaveTokenAsync(string.Empty);
         }
 
         public Task<bool> RegisterAsync(string username, string password)

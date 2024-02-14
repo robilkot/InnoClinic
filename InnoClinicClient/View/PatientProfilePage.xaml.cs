@@ -11,14 +11,4 @@ public partial class PatientProfilePage : ContentPage
 
         BindingContext = viewModel;
     }
-
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-
-        //if(BindingContext is  PatientProfileViewModel viewModel)
-        //{
-        //    await Shell.Current.DisplayAlert("wow", viewModel.Patient.Id.ToString(), "Ok");
-        //}
-    }
 }

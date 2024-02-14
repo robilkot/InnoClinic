@@ -4,9 +4,15 @@ namespace InnoClinicClient.Services
 {
     public class LocalAuthService : IAuthService
     {
+        private readonly bool _isAuthenticated = false;
+        public Task<bool> IsAuthenticated()
+        {
+            return Task.FromResult(_isAuthenticated);
+        }
+
         public Task<bool> LoginAsync(string username, string password, bool rememberLogin)
         {
-            return Task.FromResult(username.Length > 3 && password.Length > 3);
+            return Task.FromResult(username.Length != 0 && password.Length != 0);
         }
 
         public Task<bool> LogoutAsync()
