@@ -9,6 +9,11 @@ namespace InnoClinicClient.ViewModel
         private readonly IPatientsService _patientsService;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsNotEditing))]
+        private bool _isEditing;
+        public bool IsNotEditing => !IsEditing;
+
+        [ObservableProperty]
         private Patient _patient;
         public PatientProfileViewModel(IPatientsService patientsService)
         {
@@ -18,8 +23,29 @@ namespace InnoClinicClient.ViewModel
             Task.Run(GetProfileAsync);
         }
 
+        public async Task SaveProfileAsync()
+        {
+            if (IsBusy)
+                return;
+
+            try
+            {
+                IsBusy = true;
+
+                await _patientsService.SavePatient(Patient);
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Error!", ex.Message, "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
         //[RelayCommand]
-        async Task GetProfileAsync()
+        public async Task GetProfileAsync()
         {
             if (IsBusy)
                 return;

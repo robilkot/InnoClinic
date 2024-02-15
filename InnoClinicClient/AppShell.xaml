@@ -7,11 +7,10 @@
     Title="InnoClinic"
     Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent ContentTemplate="{DataTemplate local:LoginPage}" />
+    <ShellContent Route ="LoginPage" ContentTemplate="{DataTemplate local:LoginPage}" />
     
     <TabBar Route="MainPage">
-        <Tab
-            Title="Profile">
+        <Tab Title="Profile">
             <ShellContent ContentTemplate="{DataTemplate local:PatientProfilePage}" />
         </Tab>
         <Tab Title="Appointments">

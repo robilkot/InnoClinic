@@ -4,41 +4,129 @@
              xmlns:model="clr-namespace:InnoClinicClient.Models"
              xmlns:viewmodel="clr-namespace:InnoClinicClient.ViewModel"
              x:Class="InnoClinicClient.View.PatientProfilePage"
-             x:DataType="viewmodel:PatientProfileViewModel"
-             Title="{Binding Title}">
+             x:DataType="viewmodel:PatientProfileViewModel">
 
-    <VerticalStackLayout HorizontalOptions="Center"
-                         Spacing="15">
-        <Image
-            Source="dotnet_bot.png"
-            Aspect="Center"
-            HeightRequest="250"
-            WidthRequest="250">
+    <VerticalStackLayout Margin="50,100,50,100"
+                         HorizontalOptions="Center"
+                         WidthRequest="350"
+                         Spacing="25">
+        <!-- Profile Image -->
+        <Image Source="dotnet_bot.png" Aspect="AspectFill" HeightRequest="200" />
+        
+        <Grid 
+            ColumnDefinitions="2*,3*"
+            RowDefinitions="*,*,*,*"
+            ColumnSpacing="10" 
+            HeightRequest="220"
+            HorizontalOptions="FillAndExpand">
 
-            <Image.Clip>
-                <EllipseGeometry 
-                    Center="125,125"
-                    RadiusX="125"
-                    RadiusY="125" />
-            </Image.Clip>
-        </Image>
+            <!-- First Name -->
+            <Label  Text="First Name:"
+                    TextColor="Gray"
+                    FontSize="Small"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    Grid.Row="0"
+                    Grid.Column="0"/>
+            <Entry  x:Name="firstNameEntry"
+                    FontSize="Small"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    HorizontalOptions="FillAndExpand"
+                    IsVisible="{Binding IsEditing}" />
+            <Label  Text="{Binding Patient.FirstName}"
+                    FontSize="Small"
+                    VerticalOptions="Center"
+                    IsVisible="{Binding IsNotEditing}"
+                    Grid.Row="0"
+                    Grid.Column="1"/>
 
-        <Label FontSize="Medium"
-               HorizontalOptions="Center">
-            <Label.Text>
-                <MultiBinding StringFormat="{}{0} {1} {2}">
-                    <Binding Path="Patient.FirstName" />
-                    <Binding Path="Patient.MiddleName" />
-                    <Binding Path="Patient.LastName" />
-                </MultiBinding>
-            </Label.Text>
-        </Label>
-        <Label FontSize="Default"
-               TextColor="Gray"
-               HorizontalOptions="Center">
-            <Label.Text>
-                <Binding Path="Patient.DateOfBirth"/>
-            </Label.Text>
-        </Label>
+            <!-- Middle Name -->
+            <Label  Text="Middle Name:" 
+                    TextColor="Gray"
+                    FontSize="Small"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    Grid.Row="1"
+                    Grid.Column="0"/>
+            <Entry x:Name="middleNameEntry"
+                   FontSize="Small"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    HorizontalOptions="FillAndExpand"
+                    IsVisible="{Binding IsEditing}" />
+            <Label Text="{Binding Patient.MiddleName}"
+                    VerticalOptions="Center"
+                    FontSize="Small"
+                    IsVisible="{Binding IsNotEditing}"
+                    Grid.Row="1"
+                    Grid.Column="1"/>
+
+            <!-- Last Name -->
+            <Label  Text="Last Name:" 
+                    TextColor="Gray"
+                    FontSize="Small"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    Grid.Row="2"
+                    Grid.Column="0"/>
+            <Entry x:Name="lastNameEntry"
+                   FontSize="Small"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    HorizontalOptions="FillAndExpand"
+                    IsVisible="{Binding IsEditing}" />
+            <Label Text="{Binding Patient.LastName}"
+                    VerticalOptions="Center"
+                   FontSize="Small"
+                    IsVisible="{Binding IsNotEditing}"
+                    Grid.Row="2"
+                    Grid.Column="1"/>
+
+            <!-- Date of Birth -->
+            <Label  Text="Date of Birth:" 
+                    TextColor="Gray"
+                    FontSize="Small"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    Grid.Row="3"
+                    Grid.Column="0"/>
+            <Entry  x:Name="dateOfBirthEntry"
+                    FontSize="Small"
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    HorizontalOptions="FillAndExpand"
+                    IsVisible="{Binding IsEditing}" />
+            <Label  Text="{Binding Patient.DateOfBirth, StringFormat='{0:dd.MM.yyyy}'}"
+                    VerticalOptions="Center"
+                    FontSize="Small"
+                    IsVisible="{Binding IsNotEditing}"
+                    Grid.Row="3"
+                    Grid.Column="1"/>
+
+        </Grid>
+
+        <!-- Edit/Save/Discard Buttons -->
+        <Button Text="Edit Profile" 
+                IsVisible="{Binding IsNotEditing}"
+                HorizontalOptions="FillAndExpand"
+                x:Name="editProfileButton"
+                Clicked="editProfileButton_Clicked" />
+        
+        <Grid 
+             ColumnDefinitions="*,*"
+             ColumnSpacing="5" 
+             IsVisible="{Binding IsEditing}"
+             HorizontalOptions="FillAndExpand">
+            
+            <Button Text="Save" 
+                    Grid.Column="0"
+                    x:Name="saveProfileEditButton"
+                    Clicked="saveProfileEditButton_Clicked" />
+            <Button Text="Discard" 
+                    Grid.Column="1"
+                    x:Name="discardProfileEditButton"
+                    Clicked="discardProfileEditButton_Clicked" />
+        </Grid>
     </VerticalStackLayout>
 </ContentPage>

@@ -12,7 +12,7 @@ namespace InnoClinicClient.Services
 
         public Task<bool> LoginAsync(string username, string password, bool rememberLogin)
         {
-            return Task.FromResult(username.Length != 0 && password.Length != 0);
+            return Task.FromResult(true);
         }
 
         public Task<bool> LogoutAsync()
