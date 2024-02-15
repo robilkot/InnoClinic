@@ -36,7 +36,7 @@ namespace InnoClinicClient.ViewModel
 
                 if (await _authService.LoginAsync(Login, Password, RememberLogin))
                 {
-                    await Shell.Current.GoToAsync(nameof(PatientProfilePage), true);
+                    await Shell.Current.GoToAsync($"//MainPage");
                 }
                 else
                 {

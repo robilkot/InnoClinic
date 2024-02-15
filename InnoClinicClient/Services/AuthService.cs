@@ -1,7 +1,6 @@
 ﻿using InnoClinicClient.Helpers;
 using InnoClinicClient.Interfaces;
 using static InnoClinicClient.Constants.Urls;
-using static UIKit.UIGestureRecognizer;
 
 namespace InnoClinicClient.Services
 {

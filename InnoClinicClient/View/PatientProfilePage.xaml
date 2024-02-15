@@ -6,7 +6,7 @@
              x:Class="InnoClinicClient.View.PatientProfilePage"
              x:DataType="viewmodel:PatientProfileViewModel"
              Title="{Binding Title}">
-    
+
     <VerticalStackLayout HorizontalOptions="Center"
                          Spacing="15">
         <Image
@@ -14,7 +14,7 @@
             Aspect="Center"
             HeightRequest="250"
             WidthRequest="250">
-            
+
             <Image.Clip>
                 <EllipseGeometry 
                     Center="125,125"
