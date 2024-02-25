@@ -4,38 +4,40 @@
              xmlns:model="clr-namespace:InnoClinicClient.Models"
              xmlns:viewmodel="clr-namespace:InnoClinicClient.ViewModel"
              x:Class="InnoClinicClient.View.PatientProfilePage"
-             x:DataType="viewmodel:PatientProfileViewModel">
+             x:DataType="viewmodel:PatientProfileViewModel"
+             >
 
-    <VerticalStackLayout Margin="50,100,50,100"
-                         HorizontalOptions="Center"
+    <VerticalStackLayout HorizontalOptions="Center"
                          WidthRequest="350"
-                         Spacing="25">
+                         Spacing="25"
+                         IsEnabled="{Binding IsNotBusy}">
+        
         <!-- Profile Image -->
         <Image Source="dotnet_bot.png" Aspect="AspectFill" HeightRequest="200" />
         
         <Grid 
+            x:Name="patientDataForm"
             ColumnDefinitions="2*,3*"
             RowDefinitions="*,*,*,*"
             ColumnSpacing="10" 
-            HeightRequest="220"
+            HeightRequest="200"
             HorizontalOptions="FillAndExpand">
 
             <!-- First Name -->
             <Label  Text="First Name:"
                     TextColor="Gray"
-                    FontSize="Small"
                     HorizontalOptions="End"
                     VerticalOptions="Center"
                     Grid.Row="0"
                     Grid.Column="0"/>
             <Entry  x:Name="firstNameEntry"
-                    FontSize="Small"
                     Grid.Row="0"
                     Grid.Column="1"
                     HorizontalOptions="FillAndExpand"
-                    IsVisible="{Binding IsEditing}" />
+                    Text="{Binding FirstNameEntryText}"
+                    IsVisible="{Binding IsEditing}">
+            </Entry>
             <Label  Text="{Binding Patient.FirstName}"
-                    FontSize="Small"
                     VerticalOptions="Center"
                     IsVisible="{Binding IsNotEditing}"
                     Grid.Row="0"
@@ -44,20 +46,18 @@
             <!-- Middle Name -->
             <Label  Text="Middle Name:" 
                     TextColor="Gray"
-                    FontSize="Small"
                     HorizontalOptions="End"
                     VerticalOptions="Center"
                     Grid.Row="1"
                     Grid.Column="0"/>
             <Entry x:Name="middleNameEntry"
-                   FontSize="Small"
                     Grid.Row="1"
                     Grid.Column="1"
                     HorizontalOptions="FillAndExpand"
+                    Text="{Binding MiddleNameEntryText}"
                     IsVisible="{Binding IsEditing}" />
             <Label Text="{Binding Patient.MiddleName}"
                     VerticalOptions="Center"
-                    FontSize="Small"
                     IsVisible="{Binding IsNotEditing}"
                     Grid.Row="1"
                     Grid.Column="1"/>
@@ -65,20 +65,18 @@
             <!-- Last Name -->
             <Label  Text="Last Name:" 
                     TextColor="Gray"
-                    FontSize="Small"
                     HorizontalOptions="End"
                     VerticalOptions="Center"
                     Grid.Row="2"
                     Grid.Column="0"/>
             <Entry x:Name="lastNameEntry"
-                   FontSize="Small"
                     Grid.Row="2"
                     Grid.Column="1"
                     HorizontalOptions="FillAndExpand"
+                    Text="{Binding LastNameEntryText}"
                     IsVisible="{Binding IsEditing}" />
             <Label Text="{Binding Patient.LastName}"
                     VerticalOptions="Center"
-                   FontSize="Small"
                     IsVisible="{Binding IsNotEditing}"
                     Grid.Row="2"
                     Grid.Column="1"/>
@@ -86,20 +84,17 @@
             <!-- Date of Birth -->
             <Label  Text="Date of Birth:" 
                     TextColor="Gray"
-                    FontSize="Small"
                     HorizontalOptions="End"
                     VerticalOptions="Center"
                     Grid.Row="3"
                     Grid.Column="0"/>
             <Entry  x:Name="dateOfBirthEntry"
-                    FontSize="Small"
                     Grid.Row="3"
                     Grid.Column="1"
                     HorizontalOptions="FillAndExpand"
                     IsVisible="{Binding IsEditing}" />
             <Label  Text="{Binding Patient.DateOfBirth, StringFormat='{0:dd.MM.yyyy}'}"
                     VerticalOptions="Center"
-                    FontSize="Small"
                     IsVisible="{Binding IsNotEditing}"
                     Grid.Row="3"
                     Grid.Column="1"/>
@@ -109,9 +104,9 @@
         <!-- Edit/Save/Discard Buttons -->
         <Button Text="Edit Profile" 
                 IsVisible="{Binding IsNotEditing}"
+                Command="{Binding EditProfileCommand}"
                 HorizontalOptions="FillAndExpand"
-                x:Name="editProfileButton"
-                Clicked="editProfileButton_Clicked" />
+                x:Name="editProfileButton" />
         
         <Grid 
              ColumnDefinitions="*,*"
@@ -121,12 +116,20 @@
             
             <Button Text="Save" 
                     Grid.Column="0"
-                    x:Name="saveProfileEditButton"
-                    Clicked="saveProfileEditButton_Clicked" />
+                    Command="{Binding SaveProfileCommand}"
+                    x:Name="saveProfileEditButton"/>
             <Button Text="Discard" 
                     Grid.Column="1"
+                    Command="{Binding CancelProfileEditCommand}"
                     x:Name="discardProfileEditButton"
-                    Clicked="discardProfileEditButton_Clicked" />
+                    />
         </Grid>
+
+        <!-- Logout button -->
+        <Button Text="Logout" 
+        IsVisible="{Binding IsNotEditing}"
+        Command="{Binding LogoutCommand}"
+        HorizontalOptions="FillAndExpand"
+        x:Name="logoutButton" />
     </VerticalStackLayout>
 </ContentPage>

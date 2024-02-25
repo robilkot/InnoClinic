@@ -1,6 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace InnoClinicClient.ViewModel
 {
@@ -10,7 +8,7 @@ namespace InnoClinicClient.ViewModel
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy;
         [ObservableProperty]
-        private string _title;
+        private string _title = string.Empty;
         public bool IsNotBusy => !IsBusy;
     }
 }

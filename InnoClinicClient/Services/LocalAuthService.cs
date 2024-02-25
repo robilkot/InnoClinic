@@ -4,25 +4,31 @@ namespace InnoClinicClient.Services
 {
     public class LocalAuthService : IAuthService
     {
-        private readonly bool _isAuthenticated = false;
-        public Task<bool> IsAuthenticated()
+        private bool _isAuthenticated = false;
+        public async Task<bool> IsAuthenticated()
         {
-            return Task.FromResult(_isAuthenticated);
+            await Task.Delay(500);
+            return _isAuthenticated;
         }
 
-        public Task<bool> LoginAsync(string username, string password, bool rememberLogin)
+        public async Task<bool> LoginAsync(string username, string password, bool rememberLogin)
         {
-            return Task.FromResult(true);
+            await Task.Delay(500);
+            _isAuthenticated = true;
+            return true;
         }
 
-        public Task<bool> LogoutAsync()
+        public async Task<bool> LogoutAsync()
         {
-            return Task.FromResult(true);
+            await Task.Delay(500);
+            _isAuthenticated = false;
+            return true;
         }
 
-        public Task<bool> RegisterAsync(string username, string password)
+        public async Task<bool> RegisterAsync(string username, string password)
         {
-            return Task.FromResult(true);
+            await Task.Delay(500);
+            return true;
         }
     }
 }

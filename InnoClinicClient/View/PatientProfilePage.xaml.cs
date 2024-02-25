@@ -14,30 +14,16 @@ public partial class PatientProfilePage : ContentPage
 		BindingContext = viewModel;
 	}
 
-    private void editProfileButton_Clicked(object sender, EventArgs e)
+    protected override void OnAppearing()
     {
-        firstNameEntry.Text = _viewModel.Patient.FirstName;
-        middleNameEntry.Text = _viewModel.Patient.MiddleName;
-        lastNameEntry.Text = _viewModel.Patient.LastName;
-
-        _viewModel.IsEditing = true;
+        Window.MinimumHeight = 600;
+        Window.MinimumWidth = 500;
     }
 
-    private async void saveProfileEditButton_Clicked(object sender, EventArgs e)
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        _viewModel.Patient.FirstName = firstNameEntry.Text;
-        _viewModel.Patient.MiddleName = middleNameEntry.Text;
-        _viewModel.Patient.LastName = lastNameEntry.Text;
+        base.OnNavigatedTo(args);
 
-        await _viewModel.SaveProfileAsync();
-
-        await _viewModel.GetProfileAsync();
-
-        _viewModel.IsEditing = false;
-    }
-
-    private void discardProfileEditButton_Clicked(object sender, EventArgs e)
-    {
-        _viewModel.IsEditing = false;
+        Task.Run(_viewModel.GetProfileAsync);
     }
 }

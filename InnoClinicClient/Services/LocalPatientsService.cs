@@ -15,17 +15,19 @@ namespace InnoClinicClient.Services
             DateOfBirth = DateTime.Today,
             Id = Guid.NewGuid()
         };
-        public Task<Patient> GetPatient()
+        public async Task<Patient> GetPatient()
         {
+            await Task.Delay(500);
+
             var json = JsonSerializer.Serialize(_patient);
 
             var newPatient = JsonSerializer.Deserialize<Patient>(json);
 
-            return Task.FromResult(newPatient!);
+            return await Task.FromResult(newPatient!);
         }
         public async Task SavePatient(Patient patient)
         {
-            await Task.Delay(200);
+            await Task.Delay(500);
 
             var json = JsonSerializer.Serialize(patient);
 

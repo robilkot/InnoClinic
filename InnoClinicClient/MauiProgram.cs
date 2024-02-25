@@ -23,16 +23,17 @@ namespace InnoClinicClient
     		builder.Logging.AddDebug();
 #endif
 
-            builder.Services.AddSingleton<LoginPage>();
             builder.Services.AddTransient<HttpClient>();
+            builder.Services.AddSingleton<IAuthService, LocalAuthService>();
+            builder.Services.AddSingleton<IPatientsService, LocalPatientsService>();
 
-            builder.Services.AddTransient<IAuthService, LocalAuthService>();
-            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddSingleton<LoginViewModel>();
+            builder.Services.AddSingleton<PatientProfileViewModel>();
+            builder.Services.AddSingleton<AppointmentsViewModel>();
 
-            builder.Services.AddTransient<IPatientsService, LocalPatientsService>();
-
-            builder.Services.AddTransient<PatientProfileViewModel>();
-            builder.Services.AddTransient<PatientProfilePage>();
+            builder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddSingleton<PatientProfilePage>();
+            builder.Services.AddSingleton<AppointmentsPage>();
 
             return builder.Build();
         }

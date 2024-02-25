@@ -12,6 +12,12 @@ namespace InnoClinicClient.View
             _viewModel = viewModel;
         }
 
+        protected override void OnAppearing()
+        {
+            Window.MinimumHeight = 500;
+            Window.MinimumWidth = 500;
+        }
+
         private void RememberLoginLabelTapped(object sender, TappedEventArgs e)
         {
             _viewModel.RememberLogin = !_viewModel.RememberLogin;

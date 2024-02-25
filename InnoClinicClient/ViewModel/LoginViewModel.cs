@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InnoClinicClient.Interfaces;
-using InnoClinicClient.Services;
-using InnoClinicClient.View;
 
 namespace InnoClinicClient.ViewModel
 {
